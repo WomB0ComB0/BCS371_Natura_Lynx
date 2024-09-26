@@ -1,25 +1,39 @@
+# General
+*.iml
+.gradle
+/local.properties
+/.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Help Files
 HELP.md
+
+# Target Directories
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### STS ###
+# STS (Spring Tool Suite)
 .apt_generated
 .classpath
 .factorypath
 .project
-.settings
+.settings/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
+# IntelliJ IDEA
+.idea/
 *.iws
 *.iml
 *.ipr
 
-### NetBeans ###
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
@@ -29,22 +43,22 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### VS Code ###
+# VS Code
 .vscode/
 
-# Compiled class file
+# Compiled Class Files
 *.class
 
-# Log file
+# Log Files
 *.log
 
-# BlueJ files
+# BlueJ Files
 *.ctxt
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
+# Package Files
 *.jar
 *.war
 *.nar
@@ -53,6 +67,6 @@ build/
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# Virtual Machine Crash Logs
 hs_err_pid*
 replay_pid*
