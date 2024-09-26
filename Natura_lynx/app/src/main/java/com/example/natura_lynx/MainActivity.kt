@@ -3,45 +3,67 @@ package com.example.natura_lynx
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.natura_lynx.ui.theme.Natura_lynxTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
             Natura_lynxTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                NaturaLynxApp()
             }
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+fun NaturaLynxApp() {
+    val navController = rememberNavController()
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    Natura_lynxTheme {
-        Greeting("Android")
+    Scaffold(
+        bottomBar = {
+            BottomNavigation {
+                BottomNavigationItem(
+                    icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
+                    label = { Text("Home") },
+                    selected = navController.currentDestination?.route == "home",
+                    onClick = { navController.navigate("home") }
+                )
+                BottomNavigationItem(
+                    icon = { Icon(Icons.Filled.Search, contentDescription = "Identify") },
+                    label = { Text("Identify") },
+                    selected = navController.currentDestination?.route == "identify",
+                    onClick = { navController.navigate("identify") }
+                )
+                BottomNavigationItem(
+                    icon = { Icon(Icons.Filled.Info, contentDescription = "Learn") },
+                    label = { Text("Learn") },
+                    selected = navController.currentDestination?.route == "learn",
+                    onClick = { navController.navigate("learn") }
+                )
+                BottomNavigationItem(
+                    icon = { Icon(Icons.Filled.Person, contentDescription = "Profile") },
+                    label = { Text("Profile") },
+                    selected = navController.currentDestination?.route == "profile",
+                    onClick = { navController.navigate("profile") }
+                )
+            }
+        }
+    ) { innerPadding ->
+        NavHost(navController, startDestination = "home", Modifier.padding(innerPadding)) {
+            composable("home") { HomeScreen() }
+            composable("identify") { IdentifyScreen() }
+            composable("learn") { LearnScreen() }
+            composable("profile") { ProfileScreen() }
+        }
     }
 }
