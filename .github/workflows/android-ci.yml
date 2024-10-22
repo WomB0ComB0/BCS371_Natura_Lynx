@@ -39,6 +39,9 @@ jobs:
           build-tools: 33.0.0
           ndk: '23.1.7779620'
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
       - name: Build with Gradle
         run: ./gradlew assembleDebug
 
@@ -47,3 +50,10 @@ jobs:
 
       - name: Run Android Lint
         run: ./gradlew lint
+
+      - name: Upload build reports
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-reports
+          path: app/build/reports

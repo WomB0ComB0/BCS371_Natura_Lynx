@@ -31,5 +31,17 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x app/gradlew
+
       - name: Run Ktlint
-        run: ./gradlew ktlintCheck
+        run: |
+          cd app
+          ./gradlew ktlintCheck
+
+      - name: Upload Ktlint reports
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ktlint-report
+          path: app/build/reports/ktlint
