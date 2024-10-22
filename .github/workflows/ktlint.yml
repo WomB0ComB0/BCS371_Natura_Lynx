@@ -21,15 +21,20 @@ jobs:
           distribution: 'zulu'
           java-version: '11'
 
-      - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v1
-        with:
-          min-wrapper-count: 1
-
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
         with:
           gradle-home-cache-cleanup: true
+
+      - name: Generate Gradle Wrapper
+        run: |
+          cd app
+          gradle wrapper
+
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+        with:
+          min-wrapper-count: 1
 
       - name: Run Ktlint
         working-directory: ./app

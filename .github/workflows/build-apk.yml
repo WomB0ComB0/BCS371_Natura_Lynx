@@ -27,24 +27,33 @@ jobs:
           api-level: 33
           build-tools: 33.0.0
 
-      - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v1
-
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
+      - name: Generate Gradle Wrapper
+        run: |
+          cd app
+          gradle wrapper
+
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+        with:
+          min-wrapper-count: 1
+
       - name: Build APK
-        run: ./gradlew assembleRelease
+        run: |
+          cd app
+          ./gradlew assembleRelease
 
       - name: Upload APK
         uses: actions/upload-artifact@v3
         with:
           name: apk
-          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          path: app/app/build/outputs/apk/release/app-release-unsigned.apk
 
       - name: Upload Build Reports
         if: failure()
         uses: actions/upload-artifact@v3
         with:
           name: build-reports
-          path: app/build/reports
+          path: app/app/build/reports
