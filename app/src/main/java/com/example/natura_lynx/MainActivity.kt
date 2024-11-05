@@ -62,8 +62,13 @@ fun NaturaLynxApp() {
         NavHost(navController, startDestination = "home", Modifier.padding(innerPadding)) {
             composable("home") { HomeScreen() }
             composable("identify") { IdentifyScreen() }
-            composable("learn") { LearnScreen() }
+            composable("learn") { LearnScreen(navController = navController) }
             composable("profile") { ProfileScreen() }
+
+            composable("details/{subcategory}") { backStackEntry ->
+                val subcategory = backStackEntry.arguments?.getString("subcategory") ?: ""
+                DetailScreen(subcategory = subcategory)
+            }
         }
     }
 }
