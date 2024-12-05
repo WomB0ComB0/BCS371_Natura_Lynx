@@ -24,12 +24,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.NavController
 import com.example.natura_lynx.ui.theme.LeafGreen1
 import com.example.natura_lynx.ui.theme.LeafGreen2
 import com.example.natura_lynx.ui.theme.TreeGreen
 
 @Composable
-fun IdentifyScreen() {
+fun IdentifyScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -50,7 +51,7 @@ fun IdentifyScreen() {
             Spacer(modifier = Modifier.height(32.dp))
 
             // Camera and Gallery Buttons with gradient background
-            CaptureOptions()
+            CaptureOptions(navController)
 
             Spacer(modifier = Modifier.height(40.dp))
 
@@ -81,7 +82,7 @@ private fun AnimatedHeader() {
 }
 
 @Composable
-private fun CaptureOptions() {
+fun CaptureOptions(navController: NavController) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -90,21 +91,22 @@ private fun CaptureOptions() {
     ) {
         CaptureButton(
             modifier = Modifier.weight(1f),
-            icon = Icons.Filled.Add,
+            icon = Icons.Default.Add,
             text = "Take Photo",
             description = "Use camera",
-            onClick = { /* TODO: Implement camera */ }
+            onClick = { navController.navigate("camera") }
         )
 
         CaptureButton(
             modifier = Modifier.weight(1f),
-            icon = Icons.Filled.Phone,
+            icon = Icons.Default.Phone,
             text = "Gallery",
             description = "Choose existing",
-            onClick = { /* TODO: Implement gallery picker */ }
+            onClick = { navController.navigate("gallery_screen") }
         )
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

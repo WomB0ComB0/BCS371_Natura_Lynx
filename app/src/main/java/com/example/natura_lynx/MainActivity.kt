@@ -86,9 +86,20 @@ fun NaturaLynxApp() {
             composable("login") { LoginScreen(navController) }
             composable("register") { RegisterScreen(navController) }
             composable("home") { HomeScreen(navController) }
-            composable("identify") { IdentifyScreen() }
+            composable("identify") { IdentifyScreen(navController) }
             composable("learn") { LearnScreen(navController) }
             composable("profile") { ProfileScreen(navController) }
+            composable("camera") {
+                CameraScreen(
+                    onPhotoTaken = { photoPath ->
+                        // Handle the photo path, e.g., pass it back to IdentifyScreen
+                        navController.popBackStack() // Navigate back after photo is taken
+                    },
+                    onBack = {
+                        navController.navigateUp() // Handle back navigation
+                    }
+                )
+            }
             composable("facts") { RandomFactScreen(navController) }
             composable(
                 route = "DetailsScreen/{categoryName}",
