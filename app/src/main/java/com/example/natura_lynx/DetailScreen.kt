@@ -1,5 +1,6 @@
 package com.example.natura_lynx
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -130,11 +132,22 @@ private fun PlantItemCard(item: PlantItem) {
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Plant info
-                Column(
+                // Plant Image
+                val imageRes = getImageForSubcategory(item.subcategory)
+                Image(
+                    painter = painterResource(imageRes),
+                    contentDescription = item.name,
                     modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 16.dp)
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // Plant Info
+                Column(
+                    modifier = Modifier.weight(1f)
                 ) {
                     Text(
                         text = item.name,
@@ -156,7 +169,9 @@ private fun PlantItemCard(item: PlantItem) {
                     )
                 }
 
-                // Difficulty indicator
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // Difficulty Indicator
                 Card(
                     colors = CardDefaults.cardColors(
                         containerColor = when (item.difficulty) {
@@ -183,6 +198,7 @@ private fun PlantItemCard(item: PlantItem) {
     }
 }
 
+
 enum class PlantDifficulty {
     EASY, MEDIUM, HARD
 }
@@ -191,7 +207,8 @@ data class PlantItem(
     val name: String,
     val scientificName: String,
     val shortDescription: String,
-    val difficulty: PlantDifficulty
+    val difficulty: PlantDifficulty,
+    val subcategory: String,
 )
 
 private fun getCategoryDescription(categoryName: String): String {
@@ -211,19 +228,22 @@ private fun getCategoryItems(categoryName: String): List<PlantItem> {
                 "Oak Tree",
                 "Quercus",
                 "Majestic hardwood tree known for its strength and longevity",
-                PlantDifficulty.MEDIUM
+                PlantDifficulty.MEDIUM,
+                "Oak"
             ),
             PlantItem(
                 "Maple Tree",
                 "Acer",
                 "Beautiful tree with distinctive leaf shapes and fall colors",
-                PlantDifficulty.EASY
+                PlantDifficulty.EASY,
+                "Maple"
             ),
             PlantItem(
                 "Pine Tree",
                 "Pinus",
                 "Evergreen conifer with needle-like leaves",
-                PlantDifficulty.HARD
+                PlantDifficulty.HARD,
+                "Pine"
             )
         )
         "Flowers" -> listOf(
@@ -231,19 +251,22 @@ private fun getCategoryItems(categoryName: String): List<PlantItem> {
                 "Rose",
                 "Rosa",
                 "Classic flowering plant known for its beauty and fragrance",
-                PlantDifficulty.MEDIUM
+                PlantDifficulty.MEDIUM,
+                "Rose"
             ),
             PlantItem(
                 "Sunflower",
                 "Helianthus",
                 "Tall annual with large, bright yellow flowers",
-                PlantDifficulty.EASY
+                PlantDifficulty.EASY,
+                "Sunflower"
             ),
             PlantItem(
                 "Orchid",
                 "Orchidaceae",
                 "Exotic flowering plant with complex blooms",
-                PlantDifficulty.HARD
+                PlantDifficulty.HARD,
+                "Rose"
             )
         )
         "Garden Plants" -> listOf(
@@ -251,19 +274,22 @@ private fun getCategoryItems(categoryName: String): List<PlantItem> {
                 "Tomato",
                 "Solanum lycopersicum",
                 "Popular garden vegetable with edible fruits",
-                PlantDifficulty.MEDIUM
+                PlantDifficulty.MEDIUM,
+                "Rose"
             ),
             PlantItem(
                 "Lettuce",
                 "Lactuca sativa",
                 "Easy-to-grow leafy vegetable",
-                PlantDifficulty.EASY
+                PlantDifficulty.EASY,
+                "Lilac"
             ),
             PlantItem(
                 "Pepper",
                 "Capsicum",
                 "Versatile plant with fruits varying in heat levels",
-                PlantDifficulty.MEDIUM
+                PlantDifficulty.MEDIUM,
+                "Peat Moss"
             )
         )
         "Herbs" -> listOf(
@@ -271,19 +297,22 @@ private fun getCategoryItems(categoryName: String): List<PlantItem> {
                 "Basil",
                 "Ocimum basilicum",
                 "Aromatic herb used in cooking",
-                PlantDifficulty.EASY
+                PlantDifficulty.EASY,
+                "Lilac"
             ),
             PlantItem(
                 "Rosemary",
                 "Rosmarinus officinalis",
                 "Fragrant Mediterranean herb",
-                PlantDifficulty.MEDIUM
+                PlantDifficulty.MEDIUM,
+                "Pine"
             ),
             PlantItem(
                 "Lavender",
                 "Lavandula",
                 "Fragrant flowering herb with calming properties",
-                PlantDifficulty.HARD
+                PlantDifficulty.HARD,
+                "Tulip"
             )
         )
         else -> emptyList()
