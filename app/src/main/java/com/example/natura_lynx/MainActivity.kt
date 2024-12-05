@@ -1,5 +1,6 @@
 package com.example.natura_lynx
 
+import ProfileScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,92 +16,80 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.natura_lynx.ui.theme.Natura_lynxTheme
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
-    private val authViewModel: AuthViewModel by viewModels()
-    private val learningViewModel: LearningViewModel by viewModels()
-    private val gamificationViewModel: GamificationViewModel by viewModels()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val authState by authViewModel.authState.collectAsState()
-            
-            when (authState) {
-                is AuthState.Authenticated -> MainContent()
-                else -> AuthScreen(
-                    onAuthSuccess = { /* Handle auth success */ }
-                )
+            Natura_lynxTheme {
+                NaturaLynxApp()
             }
         }
     }
 }
 
 @Composable
-private fun MainContent() {
+fun NaturaLynxApp() {
     val navController = rememberNavController()
-    
+    val auth = remember { Firebase.auth }
+
+    // Check if user is already logged in
+    val startDestination = if (auth.currentUser != null) "home" else "login"
+
     Scaffold(
         bottomBar = {
-            BottomNavigation {
-                BottomNavigationItem(
-                    icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
-                    label = { Text("Home") },
-                    selected = navController.currentDestination?.route == "home",
-                    onClick = { navController.navigate("home") }
-                )
-                BottomNavigationItem(
-                    icon = { Icon(Icons.Filled.Search, contentDescription = "Identify") },
-                    label = { Text("Identify") },
-                    selected = navController.currentDestination?.route == "identify",
-                    onClick = { navController.navigate("identify") }
-                )
-                BottomNavigationItem(
-                    icon = { Icon(Icons.Filled.Info, contentDescription = "Learn") },
-                    label = { Text("Learn") },
-                    selected = navController.currentDestination?.route == "learn",
-                    onClick = { navController.navigate("learn") }
-                )
-                BottomNavigationItem(
-                    icon = { Icon(Icons.Filled.Person, contentDescription = "Profile") },
-                    label = { Text("Profile") },
-                    selected = navController.currentDestination?.route == "profile",
-                    onClick = { navController.navigate("profile") }
-                )
-                BottomNavigationItem(
-                    icon = { Icon(Icons.Filled.List, contentDescription = "Tasks") },
-                    label = { Text("Tasks") },
-                    selected = navController.currentDestination?.route == "tasks",
-                    onClick = { navController.navigate("tasks") }
-                )
-                BottomNavigationItem(
-                    icon = { Icon(Icons.Filled.Group, contentDescription = "Family") },
-                    label = { Text("Family") },
-                    selected = navController.currentDestination?.route == "family",
-                    onClick = { navController.navigate("family") }
-                )
-                BottomNavigationItem(
-                    icon = { Icon(Icons.Filled.Park, contentDescription = "Ecosystem") },
-                    label = { Text("Ecosystem") },
-                    selected = navController.currentDestination?.route == "ecosystem",
-                    onClick = { navController.navigate("ecosystem") }
-                )
+            if (auth.currentUser != null) {  // Only show bottom nav when logged in
+                BottomNavigation {
+                    BottomNavigationItem(
+                        icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
+                        label = { Text("Home") },
+                        selected = navController.currentDestination?.route == "home",
+                        onClick = { navController.navigate("home") }
+                    )
+                    BottomNavigationItem(
+                        icon = { Icon(Icons.Filled.Search, contentDescription = "Identify") },
+                        label = { Text("Identify") },
+                        selected = navController.currentDestination?.route == "identify",
+                        onClick = { navController.navigate("identify") }
+                    )
+                    BottomNavigationItem(
+                        icon = { Icon(Icons.Filled.Info, contentDescription = "Learn") },
+                        label = { Text("Learn") },
+                        selected = navController.currentDestination?.route == "learn",
+                        onClick = { navController.navigate("learn") }
+                    )
+                    BottomNavigationItem(
+                        icon = { Icon(Icons.Filled.Person, contentDescription = "Profile") },
+                        label = { Text("Profile") },
+                        selected = navController.currentDestination?.route == "profile",
+                        onClick = { navController.navigate("profile") }
+                    )
+                }
             }
         }
     ) { innerPadding ->
-        NavHost(navController, startDestination = "home", Modifier.padding(innerPadding)) {
+        NavHost(
+            navController = navController,
+            startDestination = startDestination,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable("login") { LoginScreen(navController) }
+            composable("register") { RegisterScreen(navController) }
             composable("home") { HomeScreen(navController) }
             composable("identify") { IdentifyScreen() }
             composable("learn") { LearnScreen(navController) }
-            composable("profile") { ProfileScreen() }
-            composable("tasks") { TaskScreen() }
-            composable("achievements") { AchievementsScreen() }
-            composable("learning-module/{moduleId}") { backStackEntry ->
-                LearningModuleScreen(moduleId = backStackEntry.arguments?.getString("moduleId"))
+            composable("profile") { ProfileScreen(navController) }
+            composable(
+                "details/{categoryName}", // Add `categoryName` as part of the route
+                arguments = listOf(navArgument("categoryName") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""
+                DetailScreen(categoryName = categoryName, navController = navController)
             }
-            composable("family") { FamilyScreen() }
-            composable("ecosystem") { EcosystemScreen() }
-            composable("settings") { SettingsScreen() }
         }
     }
 }
