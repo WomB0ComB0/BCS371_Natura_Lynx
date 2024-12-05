@@ -68,6 +68,12 @@ fun NaturaLynxApp() {
                         selected = navController.currentDestination?.route == "profile",
                         onClick = { navController.navigate("profile") }
                     )
+                    BottomNavigationItem(
+                        icon = { Icon(Icons.Filled.Book, contentDescription = "Facts") },
+                        label = { Text("NatureAI") },
+                        selected = navController.currentDestination?.route == "facts",
+                        onClick = { navController.navigate("facts") }
+                    )
                 }
             }
         }
@@ -83,6 +89,7 @@ fun NaturaLynxApp() {
             composable("identify") { IdentifyScreen() }
             composable("learn") { LearnScreen(navController) }
             composable("profile") { ProfileScreen(navController) }
+            composable("facts") { RandomFactScreen(navController) }
             composable(
                 route = "DetailsScreen/{categoryName}",
                 arguments = listOf(navArgument("categoryName") { type = NavType.StringType })

@@ -7,9 +7,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 
 @Composable
-fun RandomFactScreen() {
+fun RandomFactScreen(navController: NavController) {
     val viewModel: NatureFactViewModel = viewModel()
     val fact = viewModel.natureFact.value
     val isLoading = viewModel.isLoading.value
