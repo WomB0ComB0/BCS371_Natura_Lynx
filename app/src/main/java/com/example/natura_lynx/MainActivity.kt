@@ -84,11 +84,11 @@ fun NaturaLynxApp() {
             composable("learn") { LearnScreen(navController) }
             composable("profile") { ProfileScreen(navController) }
             composable(
-                "details/{categoryName}", // Add `categoryName` as part of the route
+                route = "DetailsScreen/{categoryName}",
                 arguments = listOf(navArgument("categoryName") { type = NavType.StringType })
             ) { backStackEntry ->
                 val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""
-                DetailScreen(categoryName = categoryName, navController = navController)
+                DetailScreen(categoryName, navController)
             }
         }
     }

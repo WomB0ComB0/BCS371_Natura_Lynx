@@ -104,7 +104,7 @@ private fun CategoryCard(category: PlantCategory,navController: NavController) {
             defaultElevation = 4.dp,
             pressedElevation = 8.dp
         ),
-        onClick = { navController.navigate("DetailsScreen") }
+        onClick = { navController.navigate("DetailsScreen/${category.name}") }
     ) {
         Box(
             modifier = Modifier
