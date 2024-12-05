@@ -11,6 +11,11 @@ val EarthBrown = Color(0xFF795548)
 val CloudWhite = Color(0xFFF5F5F5)
 val NightDark = Color(0xFF1B5E20)
 
+// Tree colors
+val TreeGreen = Color(0xFF2E7D32)  // Deep forest green for trunk
+val LeafGreen1 = Color(0xFF43A047)  // Lighter green for leaves
+val LeafGreen2 = Color(0xFF66BB6A)  // Even lighter green for variation
+
 // Light theme colors
 val Primary = LeafGreen
 val Secondary = SunflowerYellow
