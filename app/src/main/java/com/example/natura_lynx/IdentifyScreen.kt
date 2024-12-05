@@ -9,7 +9,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Photo
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,7 +39,6 @@ fun IdentifyScreen(navController: NavController) {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Add animated background tree
         AnimatedTreeBackground()
 
         Column(
@@ -45,17 +47,14 @@ fun IdentifyScreen(navController: NavController) {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Animated Header
             AnimatedHeader()
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Camera and Gallery Buttons with gradient background
             CaptureOptions(navController)
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Recent Identifications with animated entrance
             RecentIdentifications()
         }
     }
@@ -91,7 +90,7 @@ fun CaptureOptions(navController: NavController) {
     ) {
         CaptureButton(
             modifier = Modifier.weight(1f),
-            icon = Icons.Default.Add,
+            icon = Icons.Default.PhotoCamera,
             text = "Take Photo",
             description = "Use camera",
             onClick = { navController.navigate("camera") }
@@ -99,10 +98,10 @@ fun CaptureOptions(navController: NavController) {
 
         CaptureButton(
             modifier = Modifier.weight(1f),
-            icon = Icons.Default.Phone,
+            icon = Icons.Default.Photo,
             text = "Gallery",
             description = "Choose existing",
-            onClick = { navController.navigate("gallery_screen") }
+            onClick = { navController.navigate("gallery") }
         )
     }
 }
@@ -248,7 +247,6 @@ private fun IdentificationItem(identification: PlantIdentification) {
     }
 }
 
-// Sample data class and data
 data class PlantIdentification(
     val name: String,
     val date: String,
@@ -279,7 +277,6 @@ private fun AnimatedTreeBackground() {
         label = "trunk_angle"
     )
 
-    // Leaves swaying animation
     val leavesAngle by infiniteTransition.animateFloat(
         initialValue = -4f,
         targetValue = 4f,
@@ -290,7 +287,6 @@ private fun AnimatedTreeBackground() {
         label = "leaves_angle"
     )
 
-    // Leaves alpha animation
     val leavesAlpha by infiniteTransition.animateFloat(
         initialValue = 0.7f,
         targetValue = 1f,
@@ -310,7 +306,6 @@ private fun AnimatedTreeBackground() {
         val treeHeight = size.height * 0.6f
         val trunkWidth = size.width * 0.05f
 
-        // Draw trunk
         rotate(trunkAngle, pivot = androidx.compose.ui.geometry.Offset(centerX, size.height)) {
             drawPath(
                 path = Path().apply {
@@ -324,7 +319,6 @@ private fun AnimatedTreeBackground() {
             )
         }
 
-        // Draw leaves
         for (i in 0..2) {
             val layerHeight = treeHeight * (0.8f - i * 0.2f)
             val layerWidth = size.width * (0.4f - i * 0.1f)

@@ -37,12 +37,12 @@ fun NaturaLynxApp() {
     val navController = rememberNavController()
     val auth = remember { Firebase.auth }
 
-    // Check if user is already logged in
+
     val startDestination = if (auth.currentUser != null) "home" else "login"
 
     Scaffold(
         bottomBar = {
-            if (auth.currentUser != null) {  // Only show bottom nav when logged in
+            if (auth.currentUser != null) {
                 BottomNavigation {
                     BottomNavigationItem(
                         icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
@@ -89,17 +89,8 @@ fun NaturaLynxApp() {
             composable("identify") { IdentifyScreen(navController) }
             composable("learn") { LearnScreen(navController) }
             composable("profile") { ProfileScreen(navController) }
-            composable("camera") {
-                CameraScreen(
-                    onPhotoTaken = { photoPath ->
-                        // Handle the photo path, e.g., pass it back to IdentifyScreen
-                        navController.popBackStack() // Navigate back after photo is taken
-                    },
-                    onBack = {
-                        navController.navigateUp() // Handle back navigation
-                    }
-                )
-            }
+            composable("camera") { CameraScreen(onPhotoTaken = { photoPath -> navController.popBackStack() }, onBack = { navController.navigateUp() }) }
+            composable("gallery") { GalleryScreen(navController) }
             composable("facts") { RandomFactScreen(navController) }
             composable(
                 route = "DetailsScreen/{categoryName}",
