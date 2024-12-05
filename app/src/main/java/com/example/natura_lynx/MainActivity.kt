@@ -60,7 +60,7 @@ fun NaturaLynxApp() {
         }
     ) { innerPadding ->
         NavHost(navController, startDestination = "home", Modifier.padding(innerPadding)) {
-            composable("home") { HomeScreen() }
+            composable("home") { HomeScreen(navController) }
             composable("identify") { IdentifyScreen() }
             composable("learn") { LearnScreen(navController = navController) }
             composable("profile") { ProfileScreen() }
