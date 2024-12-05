@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Grass
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -171,8 +172,8 @@ data class PlantCategory(
 )
 
 private val categories = listOf(
-    PlantCategory("Trees", Icons.Filled.Favorite, 25),
-    PlantCategory("Flowers", Icons.Filled.Favorite, 30),
-    PlantCategory("Garden Plants", Icons.Filled.Favorite, 20),
-    PlantCategory("Herbs", Icons.Filled.Favorite, 15)
+    PlantCategory("Trees", Icons.Filled.Grass, 25),
+    PlantCategory("Flowers", Icons.Filled.Grass, 30),
+    PlantCategory("Garden Plants", Icons.Filled.Grass, 20),
+    PlantCategory("Herbs", Icons.Filled.Grass, 15)
 )
