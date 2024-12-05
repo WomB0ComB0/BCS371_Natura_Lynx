@@ -9,9 +9,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.natura_lynx.ui.theme.Natura_lynxTheme
 
 class MainActivity : ComponentActivity() {
@@ -87,9 +89,9 @@ private fun MainContent() {
         }
     ) { innerPadding ->
         NavHost(navController, startDestination = "home", Modifier.padding(innerPadding)) {
-            composable("home") { HomeScreen() }
+            composable("home") { HomeScreen(navController) }
             composable("identify") { IdentifyScreen() }
-            composable("learn") { LearnScreen() }
+            composable("learn") { LearnScreen(navController) }
             composable("profile") { ProfileScreen() }
             composable("tasks") { TaskScreen() }
             composable("achievements") { AchievementsScreen() }
