@@ -13,7 +13,7 @@ import org.json.JSONObject
 class NatureFactRepository {
     private val client = OkHttpClient()
     private val JSON = "application/json; charset=utf-8".toMediaType()
-    private val TAG = "NatureFactRepository"
+    private val tag = "NatureFactRepository"
 
     suspend fun getRandomNatureFact(): String = withContext(Dispatchers.IO) {
         try {
@@ -37,7 +37,7 @@ class NatureFactRepository {
                 })
             }
 
-            Log.d(TAG, "Request body: ${requestBody}")
+            Log.d(tag, "Request body: ${requestBody}")
 
             val request = Request.Builder()
                 .url(Config.OPENAI_API_URL)
@@ -49,8 +49,8 @@ class NatureFactRepository {
             val response = client.newCall(request).execute()
             val responseBody = response.body?.string()
             
-            Log.d(TAG, "Response code: ${response.code}")
-            Log.d(TAG, "Response body: $responseBody")
+            Log.d(tag, "Response code: ${response.code}")
+            Log.d(tag, "Response body: $responseBody")
             
             if (response.isSuccessful && responseBody != null) {
                 val responseJson = JSONObject(responseBody)
@@ -67,7 +67,7 @@ class NatureFactRepository {
                 "Error: Unable to generate a nature fact. Status code: ${response.code}"
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error generating fact", e)
+            Log.e(tag, "Error generating fact", e)
             "Error: ${e.message}"
         }
     }
