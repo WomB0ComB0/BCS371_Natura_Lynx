@@ -67,15 +67,29 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation("androidx.core:core-ktx:1.7.0")
-    implementation("androidx.compose.ui:ui:1.1.1")
-    implementation("androidx.compose.material:material:1.1.1")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.1.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
-    implementation("androidx.activity:activity-compose:1.4.0")
-    implementation("androidx.navigation:navigation-compose:2.4.2")
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("org.json:json:20231013")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+val composeBomVersion = "2024.02.00"
+
+// Compose Dependencies
+implementation(platform("androidx.compose:compose-bom:$composeBomVersion"))
+implementation("androidx.compose.ui:ui")
+implementation("androidx.compose.material3:material3")
+implementation("androidx.compose.material:material")
+implementation("androidx.compose.material:material-icons-core")
+implementation("androidx.compose.material:material-icons-extended")
+implementation("androidx.compose.ui:ui-tooling-preview")
+debugImplementation("androidx.compose.ui:ui-tooling")
+
+// Navigation
+implementation("androidx.navigation:navigation-compose:2.7.7")
+
+// Core and Lifecycle Dependencies
+implementation("androidx.core:core-ktx:1.7.0")
+implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
+implementation("androidx.activity:activity-compose:1.4.0")
+
+// Retrofit and Networking
+implementation("com.squareup.retrofit2:retrofit:2.9.0")
+implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+implementation("org.json:json:20231013")
+implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }

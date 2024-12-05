@@ -9,9 +9,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.natura_lynx.ui.theme.Natura_lynxTheme
 
 class MainActivity : ComponentActivity() {
@@ -58,17 +60,19 @@ fun NaturaLynxApp() {
                 )
             }
         }
-    ) { paddingValues ->
-        NavHost(
-            navController = navController,
-            startDestination = "home",
-            modifier = Modifier.padding(paddingValues)
-        ) {
-            composable("home") { HomeScreen(navController = navController) }
+    ) { innerPadding ->
+        NavHost(navController, startDestination = "home", Modifier.padding(innerPadding)) {
+            composable("home") { HomeScreen(navController) }
             composable("identify") { IdentifyScreen() }
-            composable("learn") { LearnScreen(navController = navController) }
+            composable("learn") { LearnScreen(navController) }
             composable("profile") { ProfileScreen() }
-            composable("random_fact") { RandomFactScreen() }
+            composable(
+                "details/{categoryName}", // Add `categoryName` as part of the route
+                arguments = listOf(navArgument("categoryName") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""
+                DetailScreen(categoryName = categoryName, navController = navController)
+            }
+        }
         }
     }
-}
