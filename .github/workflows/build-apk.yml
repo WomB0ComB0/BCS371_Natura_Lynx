@@ -1,59 +1,48 @@
-name: Build APK
+name: Build Release APK
 
 on:
   push:
-    branches:
-      - '**'
-  pull_request:
-    branches:
-      - '**'
+    tags:
+      - 'v*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
+      - uses: actions/checkout@v3
+      
       - name: Set up JDK 11
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '11'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v2
-        with:
-          api-level: 33
-          build-tools: 33.0.0
-
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
       - name: Generate Gradle Wrapper
+        run: gradle wrapper
+
+      - name: Decode Keystore
+        env:
+          ENCODED_KEYSTORE: ${{ secrets.KEYSTORE }}
         run: |
-          cd app
-          gradle wrapper
+          echo $ENCODED_KEYSTORE | base64 -d > keystore.jks
 
-      - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v1
-        with:
-          min-wrapper-count: 1
-
-      - name: Build APK
+      - name: Build Release APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          cd app
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=../keystore.jks \
+            -Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD \
+            -Pandroid.injected.signing.key.alias=$KEY_ALIAS \
+            -Pandroid.injected.signing.key.password=$KEY_PASSWORD
 
-      - name: Upload APK
+      - name: Upload Release APK
         uses: actions/upload-artifact@v3
         with:
-          name: apk
-          path: app/app/build/outputs/apk/release/app-release-unsigned.apk
-
-      - name: Upload Build Reports
-        if: failure()
-        uses: actions/upload-artifact@v3
-        with:
-          name: build-reports
-          path: app/app/build/reports
+          name: app-release
+          path: app/build/outputs/apk/release/app-release.apk

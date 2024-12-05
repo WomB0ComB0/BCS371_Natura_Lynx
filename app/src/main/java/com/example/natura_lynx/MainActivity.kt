@@ -15,20 +15,29 @@ import androidx.navigation.compose.rememberNavController
 import com.example.natura_lynx.ui.theme.Natura_lynxTheme
 
 class MainActivity : ComponentActivity() {
+    private val authViewModel: AuthViewModel by viewModels()
+    private val learningViewModel: LearningViewModel by viewModels()
+    private val gamificationViewModel: GamificationViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            Natura_lynxTheme {
-                NaturaLynxApp()
+            val authState by authViewModel.authState.collectAsState()
+            
+            when (authState) {
+                is AuthState.Authenticated -> MainContent()
+                else -> AuthScreen(
+                    onAuthSuccess = { /* Handle auth success */ }
+                )
             }
         }
     }
 }
 
 @Composable
-fun NaturaLynxApp() {
+private fun MainContent() {
     val navController = rememberNavController()
-
+    
     Scaffold(
         bottomBar = {
             BottomNavigation {
@@ -56,6 +65,24 @@ fun NaturaLynxApp() {
                     selected = navController.currentDestination?.route == "profile",
                     onClick = { navController.navigate("profile") }
                 )
+                BottomNavigationItem(
+                    icon = { Icon(Icons.Filled.List, contentDescription = "Tasks") },
+                    label = { Text("Tasks") },
+                    selected = navController.currentDestination?.route == "tasks",
+                    onClick = { navController.navigate("tasks") }
+                )
+                BottomNavigationItem(
+                    icon = { Icon(Icons.Filled.Group, contentDescription = "Family") },
+                    label = { Text("Family") },
+                    selected = navController.currentDestination?.route == "family",
+                    onClick = { navController.navigate("family") }
+                )
+                BottomNavigationItem(
+                    icon = { Icon(Icons.Filled.Park, contentDescription = "Ecosystem") },
+                    label = { Text("Ecosystem") },
+                    selected = navController.currentDestination?.route == "ecosystem",
+                    onClick = { navController.navigate("ecosystem") }
+                )
             }
         }
     ) { innerPadding ->
@@ -64,6 +91,14 @@ fun NaturaLynxApp() {
             composable("identify") { IdentifyScreen() }
             composable("learn") { LearnScreen() }
             composable("profile") { ProfileScreen() }
+            composable("tasks") { TaskScreen() }
+            composable("achievements") { AchievementsScreen() }
+            composable("learning-module/{moduleId}") { backStackEntry ->
+                LearningModuleScreen(moduleId = backStackEntry.arguments?.getString("moduleId"))
+            }
+            composable("family") { FamilyScreen() }
+            composable("ecosystem") { EcosystemScreen() }
+            composable("settings") { SettingsScreen() }
         }
     }
 }
