@@ -1,3 +1,9 @@
+# Specific files to exclude
+**/Config.kt
+Config.kt
+app/src/main/java/com/example/natura_lynx/Config.kt
+**/com/example/natura_lynx/Config.kt
+
 # General
 *.iml
 .gradle
@@ -73,3 +79,6 @@ replay_pid*
 
 # Ignore Gradle build output directory
 build
+
+# Add this line to exclude Config.kt
+**/Config.kt

@@ -58,17 +58,17 @@ fun NaturaLynxApp() {
                 )
             }
         }
-    ) { innerPadding ->
-        NavHost(navController, startDestination = "home", Modifier.padding(innerPadding)) {
-            composable("home") { HomeScreen() }
+    ) { paddingValues ->
+        NavHost(
+            navController = navController,
+            startDestination = "home",
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            composable("home") { HomeScreen(navController = navController) }
             composable("identify") { IdentifyScreen() }
             composable("learn") { LearnScreen(navController = navController) }
             composable("profile") { ProfileScreen() }
-
-            composable("details/{subcategory}") { backStackEntry ->
-                val subcategory = backStackEntry.arguments?.getString("subcategory") ?: ""
-                DetailScreen(subcategory = subcategory)
-            }
+            composable("random_fact") { RandomFactScreen() }
         }
     }
 }

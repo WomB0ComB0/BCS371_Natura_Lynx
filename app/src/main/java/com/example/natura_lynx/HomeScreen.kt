@@ -6,9 +6,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -18,11 +19,11 @@ fun HomeScreen() {
     ) {
         Text("Welcome to NaturaLynx", style = MaterialTheme.typography.h4)
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { /* TODO: Navigate to Identify */ }) {
+        Button(onClick = { navController.navigate("identify") }) {
             Text("Start Identifying Plants")
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { /* TODO: Navigate to Learn */ }) {
+        Button(onClick = { navController.navigate("random_fact") }) {
             Text("Explore Nature Facts")
         }
     }

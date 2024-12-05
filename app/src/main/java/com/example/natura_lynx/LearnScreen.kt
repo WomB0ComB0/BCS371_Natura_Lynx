@@ -118,7 +118,6 @@ fun getInfoForSubcategory(subcategory: String): String {
     }
 }
 
-// Sample data function for images
 fun getImageForSubcategory(subcategory: String): Int {
     return when (subcategory) {
         "Oak" -> R.drawable.oak
