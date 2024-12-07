@@ -1,12 +1,21 @@
 package com.example.natura_lynx
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontStyle
@@ -22,53 +31,73 @@ fun PlantCard(plant: TreflePlant, navController: NavController, fromSearch: Bool
         modifier = Modifier
             .fillMaxWidth()
             .height(200.dp),
-        shape = RoundedCornerShape(16.dp),
-        onClick = { 
-            navController.currentBackStackEntry?.savedStateHandle?.set("fromSearch", fromSearch)
+        onClick = {
             navController.navigate("plant_detail/${plant.id}")
         }
     ) {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Simple background color if no image
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            AsyncImage(
+                model = plant.imageUrl,
+                contentDescription = plant.commonName,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
             )
             
-            // If there's an image
-            if (plant.imageUrl.isNotEmpty()) {
-                AsyncImage(
-                    model = plant.imageUrl,
-                    contentDescription = plant.commonName,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            }
-            
-            // Plant information
-            Column(
+            // Add semi-transparent overlay at the bottom
+            Box(
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.7f)
+                            )
+                        )
+                    )
                     .padding(16.dp)
             ) {
-                if (plant.commonName.isNotEmpty()) {
-                    Text(
-                        text = plant.commonName,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
+                Column {
+                    Box {
+                        // Shadow layer
+                        Text(
+                            text = plant.commonName,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black.copy(alpha = 0.5f),
+                            modifier = Modifier.offset(2.dp, 2.dp)
+                        )
+                        // Main text layer
+                        Text(
+                            text = plant.commonName,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                    
+                    Box {
+                        // Shadow layer
+                        Text(
+                            text = plant.scientificName,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontStyle = FontStyle.Italic,
+                            color = Color.Black.copy(alpha = 0.5f),
+                            modifier = Modifier.offset(2.dp, 2.dp)
+                        )
+                        // Main text layer
+                        Text(
+                            text = plant.scientificName,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontStyle = FontStyle.Italic,
+                            color = Color.White.copy(alpha = 0.8f)
+                        )
+                    }
                 }
-                Text(
-                    text = plant.scientificName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontStyle = FontStyle.Italic
-                )
             }
         }
     }
-} 
+}
