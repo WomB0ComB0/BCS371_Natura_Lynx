@@ -41,7 +41,7 @@ import java.io.File
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun CameraScreen(onPhotoTaken: (String) -> Unit, onBack: () -> Unit) {
+fun CameraScreen(onPhotoTaken: (ByteArray) -> Unit, onBack: () -> Unit) {
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -89,7 +89,7 @@ private fun CameraContent(
     onImageCaptureChange: (ImageCapture) -> Unit,
     context: Context,
     lifecycleOwner: LifecycleOwner,
-    onPhotoTaken: (String) -> Unit
+    onPhotoTaken: (ByteArray) -> Unit
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -168,7 +168,9 @@ private fun CameraContent(
                         ContextCompat.getMainExecutor(context),
                         object : ImageCapture.OnImageSavedCallback {
                             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                                onPhotoTaken(photoFile.absolutePath)
+                                // Convert file to ByteArray and pass to callback
+                                val bytes = photoFile.readBytes()
+                                onPhotoTaken(bytes)
                             }
 
                             override fun onError(exception: ImageCaptureException) {

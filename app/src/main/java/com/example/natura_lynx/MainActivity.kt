@@ -1,24 +1,36 @@
 package com.example.natura_lynx
 
+import GalleryScreen
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.Icon
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.natura_lynx.ui.theme.Natura_lynxTheme
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,7 +47,7 @@ class MainActivity : ComponentActivity() {
 fun NaturaLynxApp() {
     val navController = rememberNavController()
     val auth = remember { Firebase.auth }
-    
+    val context= LocalContext.current
     val startDestination by remember {
         mutableStateOf(if (auth.currentUser != null) "home" else "login")
     }
@@ -89,8 +101,21 @@ fun NaturaLynxApp() {
             composable("identify") { IdentifyScreen(navController) }
             composable("learn") { LearnScreen(navController) }
             composable("profile") { ProfileScreen(navController) }
-            composable("camera") { CameraScreen(onPhotoTaken = { photoPath -> navController.popBackStack() }, onBack = { navController.navigateUp() }) }
-            composable("gallery") { GalleryScreen(navController) }
+            composable("camera") { 
+                CameraScreen(
+                    onPhotoTaken = { bytes ->
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("selected_image", bytes)
+                        navController.popBackStack()
+                    },
+                    onBack = { navController.navigateUp() }
+                )
+            }
+            composable("gallery") { 
+                Log.d("Navigation", "Navigating to gallery screen")
+                GalleryScreen(navController, context )
+            }
             composable("facts") { RandomFactScreen(navController) }
             composable(
                 route = "DetailsScreen/{categoryName}",

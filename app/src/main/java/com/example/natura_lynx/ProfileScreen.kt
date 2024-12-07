@@ -28,7 +28,6 @@ fun ProfileScreen(navController: NavController) {
     val context = LocalContext.current
     val factCount = remember { mutableStateOf(0) }
     
-    // Load the fact count when the screen is created
     LaunchedEffect(Unit) {
         val sharedPrefs = context.getSharedPreferences("NaturaLynx", Context.MODE_PRIVATE)
         factCount.value = sharedPrefs.getInt("fact_count", 0)

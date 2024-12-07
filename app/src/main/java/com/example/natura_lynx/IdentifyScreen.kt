@@ -1,20 +1,46 @@
 package com.example.natura_lynx
 
-import androidx.compose.animation.core.*
+import android.util.Log
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Camera
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,16 +50,52 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.natura_lynx.ui.theme.LeafGreen1
 import com.example.natura_lynx.ui.theme.LeafGreen2
 import com.example.natura_lynx.ui.theme.TreeGreen
+import kotlinx.coroutines.launch
 
 @Composable
 fun IdentifyScreen(navController: NavController) {
+    var plantIdentificationResult by remember { mutableStateOf<String>("") }
+    var isLoading by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    var imageBytes by remember { mutableStateOf<ByteArray>(byteArrayOf()) }
+    val context = LocalContext.current
+
+    // Handle image from gallery
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+    LaunchedEffect(savedStateHandle) {
+        savedStateHandle?.get<ByteArray>("selected_image")?.let { bytes ->
+            imageBytes = bytes
+            savedStateHandle.remove<ByteArray>("selected_image")
+        }
+    }
+
+    LaunchedEffect(imageBytes) {
+        if (imageBytes.isNotEmpty()) {
+            scope.launch {
+                isLoading = true
+                try {
+                    val plantRepo = PlantidRepo(context)
+                    val result = plantRepo.identifyPlant(imageBytes)
+                    navController.currentBackStackEntry?.savedStateHandle?.set("plant_details", result)
+                    navController.navigate("plant_details")
+                } catch (e: Exception) {
+                    Log.e("IdentifyScreen", "Error identifying plant", e)
+                    plantIdentificationResult = "Error: ${e.message}"
+                } finally {
+                    isLoading = false
+                }
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -51,14 +113,32 @@ fun IdentifyScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            CaptureOptions(navController)
+            CaptureOptions(
+                navController = navController,
+                onImageCaptured = { capturedImageBytes ->
+                    imageBytes = capturedImageBytes
+                }
+            )
 
             Spacer(modifier = Modifier.height(40.dp))
+            if (isLoading) {
+                CircularProgressIndicator()
+            } else {
+                Text(
+                    text = plantIdentificationResult,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    textAlign = TextAlign.Center
+                )
+            }
 
             RecentIdentifications()
         }
     }
 }
+
+
+
 
 @Composable
 private fun AnimatedHeader() {
@@ -81,7 +161,7 @@ private fun AnimatedHeader() {
 }
 
 @Composable
-fun CaptureOptions(navController: NavController) {
+fun CaptureOptions(navController: NavController, onImageCaptured: (ByteArray) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -101,7 +181,10 @@ fun CaptureOptions(navController: NavController) {
             icon = Icons.Default.Photo,
             text = "Gallery",
             description = "Choose existing",
-            onClick = { navController.navigate("gallery") }
+            onClick = { 
+                Log.d("IdentifyScreen", "Gallery button clicked")
+                navController.navigate("gallery") 
+            }
         )
     }
 }
@@ -197,7 +280,7 @@ private fun RecentIdentifications() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun IdentificationItem(identification: PlantIdentification) {
+private fun IdentificationItem(identification: PlantIdentifications) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -247,16 +330,16 @@ private fun IdentificationItem(identification: PlantIdentification) {
     }
 }
 
-data class PlantIdentification(
+data class PlantIdentifications(
     val name: String,
     val date: String,
     val confidence: Int
 )
 
 private val sampleIdentifications = listOf(
-    PlantIdentification("Red Rose", "Today, 2:30 PM", 95),
-    PlantIdentification("Oak Tree", "Yesterday", 88),
-    PlantIdentification("Sunflower", "2 days ago", 92)
+    PlantIdentifications("Red Rose", "Today, 2:30 PM", 95),
+    PlantIdentifications("Oak Tree", "Yesterday", 88),
+    PlantIdentifications("Sunflower", "2 days ago", 92)
 )
 
 @Composable
