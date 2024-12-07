@@ -10,12 +10,14 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
+import java.net.URL
 
 class TrefleRepository {
     private val client = OkHttpClient()
     private val baseUrl = "https://trefle.io/api/v1"
     private val tag = "TrefleRepository"
     private val openAiClient = OkHttpClient()
+    private val apiKey = "YZsqPgTOZXGTWhDGl3OzaMG7sLf04v5hDK8TQrCjjPA"
 
     private val plantFilters = mapOf(
         "rose" to Pair("Rosaceae", "Rosa"),
@@ -119,16 +121,7 @@ class TrefleRepository {
             val plants = mutableListOf<TreflePlant>()
             for (i in 0 until plantsArray.length()) {
                 val plant = plantsArray.getJSONObject(i)
-                plants.add(
-                    TreflePlant(
-                        id = plant.getInt("id"),
-                        commonName = plant.optString("common_name", "Unknown"),
-                        scientificName = plant.getString("scientific_name"),
-                        imageUrl = plant.optString("image_url", ""),
-                        family = plant.optString("family", "Unknown"),
-                        genus = plant.optString("genus", "Unknown")
-                    )
-                )
+                plants.add(parsePlantFromJson(plant))
             }
             
             plants
@@ -175,6 +168,109 @@ class TrefleRepository {
         } catch (e: Exception) {
             Log.e(tag, "Error getting plant details", e)
             null
+        }
+    }
+
+    private fun parsePlantFromJson(plantJson: JSONObject): TreflePlant {
+        Log.d(tag, "Raw plant JSON: $plantJson")
+        // Get common name, handling both null and empty cases
+        val commonName = if (plantJson.isNull("common_name")) {
+            ""
+        } else {
+            plantJson.optString("common_name", "")
+        }
+
+        return TreflePlant(
+            id = plantJson.getInt("id"),
+            commonName = commonName,  // Use our properly handled common name
+            scientificName = plantJson.optString("scientific_name", "Species unknown"),
+            imageUrl = plantJson.optJSONObject("image_url")?.optString("original") 
+                ?: plantJson.optString("image_url", ""),
+            family = plantJson.optJSONObject("family")?.optString("name")
+                ?: plantJson.optString("family", "Unknown Family"),
+            genus = plantJson.optJSONObject("genus")?.optString("name")
+                ?: plantJson.optString("genus", "Unknown Genus")
+        )
+    }
+
+    suspend fun getPlantById(id: Int): TreflePlant? {
+        return try {
+            val url = "${baseUrl}plants/$id?token=$apiKey"
+            Log.d(tag, "Making request to URL: $url")
+            
+            val response = withContext(Dispatchers.IO) {
+                URL(url).readText()
+            }
+            
+            Log.d(tag, "Raw response: $response")
+            val jsonObject = JSONObject(response)
+            val plantJson = jsonObject.getJSONObject("data")
+            parsePlantFromJson(plantJson)
+        } catch (e: Exception) {
+            Log.e(tag, "Error getting plant by id", e)
+            null
+        }
+    }
+
+    suspend fun searchPlantsByCategory(category: String): List<TreflePlant> = withContext(Dispatchers.IO) {
+        try {
+            // Reduced number of taxonomy pairs per category
+            val taxonomyFilter = when (category.lowercase()) {
+                "trees" -> listOf(
+                    Pair("Pinaceae", "Pinus"),     // Pine family
+                    Pair("Fagaceae", "Quercus")    // Oak family
+                )
+                "flowers" -> listOf(
+                    Pair("Rosaceae", "Rosa"),      // Rose family
+                    Pair("Asteraceae", "Aster")    // Daisy family
+                )
+                "garden plants" -> listOf(
+                    Pair("Solanaceae", "Solanum"), // Tomato/potato family
+                    Pair("Brassicaceae", "Brassica") // Cabbage family
+                )
+                "herbs" -> listOf(
+                    Pair("Lamiaceae", "Mentha"),    // Mint family
+                    Pair("Apiaceae", "Petroselinum") // Parsley family
+                )
+                else -> emptyList()
+            }
+
+            val allPlants = mutableListOf<TreflePlant>()
+            
+            taxonomyFilter.forEach { (family, genus) ->
+                val url = "$baseUrl/plants?token=${Config.TREFLE_API_KEY}&filter[family_name]=$family&filter[genus]=$genus"
+                Log.d(tag, "Making request to URL: $url")
+                
+                val request = Request.Builder()
+                    .url(url)
+                    .addHeader("Accept", "application/json")
+                    .build()
+
+                val response = client.newCall(request).execute()
+                
+                if (response.isSuccessful) {
+                    val responseBody = response.body?.string()
+                    val jsonData = JSONObject(responseBody ?: "{}")
+                    if (jsonData.has("data")) {
+                        val plantsArray = jsonData.getJSONArray("data")
+                        Log.d(tag, "Found ${plantsArray.length()} plants for $family/$genus")
+                        
+                        for (i in 0 until plantsArray.length()) {
+                            val plantJson = plantsArray.getJSONObject(i)
+                            allPlants.add(parsePlantFromJson(plantJson))
+                        }
+                    }
+                } else {
+                    Log.e(tag, "API request failed for $family/$genus with code: ${response.code}")
+                }
+            }
+
+            Log.d(tag, "Total plants found for category $category: ${allPlants.size}")
+            allPlants
+            
+        } catch (e: Exception) {
+            Log.e(tag, "Error searching plants by category", e)
+            emptyList()
         }
     }
 }

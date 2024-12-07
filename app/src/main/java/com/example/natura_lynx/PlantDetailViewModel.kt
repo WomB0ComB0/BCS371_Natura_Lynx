@@ -1,5 +1,7 @@
 package com.example.natura_lynx
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -9,31 +11,40 @@ import kotlinx.coroutines.launch
 
 class PlantDetailViewModel(
     private val plantId: Int,
-    private val repository: TrefleRepository = TrefleRepository()
+    private val context: Context
 ) : ViewModel() {
-    private val _plant = mutableStateOf<TreflePlantDetail?>(null)
-    private val _isLoading = mutableStateOf(true)
+    private val repository = TrefleRepository()
+    
+    private val _plant = mutableStateOf<TreflePlant?>(null)
+    val plant: State<TreflePlant?> = _plant
 
-    val plant: State<TreflePlantDetail?> = _plant
+    private val _isLoading = mutableStateOf(true)
     val isLoading: State<Boolean> = _isLoading
 
     init {
-        loadPlantDetails()
+        loadPlant()
     }
 
-    private fun loadPlantDetails() {
+    private fun loadPlant() {
         viewModelScope.launch {
-            _isLoading.value = true
-            _plant.value = repository.getPlantDetails(plantId)
-            _isLoading.value = false
-        }
-    }
-
-    companion object {
-        fun provideFactory(plantId: Int): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return PlantDetailViewModel(plantId) as T
+            try {
+                _isLoading.value = true
+                val plantDetails = repository.getPlantDetails(plantId)
+                plantDetails?.let { details ->
+                    _plant.value = TreflePlant(
+                        id = details.id,
+                        commonName = details.commonName,
+                        scientificName = details.scientificName,
+                        imageUrl = details.imageUrl,
+                        family = details.family,
+                        genus = details.genus,
+                        additionalDetails = details.additionalDetails
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e("PlantDetail", "Error loading plant details", e)
+            } finally {
+                _isLoading.value = false
             }
         }
     }

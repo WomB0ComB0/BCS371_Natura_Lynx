@@ -1,119 +1,261 @@
 package com.example.natura_lynx
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Forest
+import androidx.compose.material.icons.filled.Grass
+import androidx.compose.material.icons.filled.LocalFlorist
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
-import com.example.natura_lynx.TreflePlant
+import com.example.natura_lynx.ui.theme.LeafGreen1
+import com.example.natura_lynx.ui.theme.LeafGreen2
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LearnScreen(navController: NavController) {
-    val viewModel: PlantSearchViewModel = viewModel()
-    val searchQuery = viewModel.searchQuery.value
-    val searchResults = viewModel.searchResults.value
-    val isLoading = viewModel.isLoading.value
+fun LearnScreen(
+    navController: NavController,
+    viewModel: PlantSearchViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+) {
+    val searchQuery by viewModel.searchQuery
+    val searchResults by viewModel.searchResults
+    val isLoading by viewModel.isLoading
+    var isSearchActive by remember { mutableStateOf(false) }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { viewModel.onSearchQueryChange(it) },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search for any plant...") },
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Only show header when not searching
+            if (!isSearchActive) {
+                LearnHeader()
+                Spacer(modifier = Modifier.height(24.dp))
             }
-        } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(searchResults) { plant ->
-                    PlantCard(plant = plant, navController = navController)
+
+            // Search Bar
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { query -> 
+                    viewModel.onSearchQueryChange(query)
+                    isSearchActive = true  // Set this to true immediately when focusing
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        if (focusState.isFocused && searchQuery.isNotEmpty()) {
+                            isSearchActive = true
+                            viewModel.onSearchQueryChange(searchQuery)  // Trigger search when focusing with existing query
+                        }
+                    },
+                placeholder = { Text("Search plants...") },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp)
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Show either search results or categories
+            if (isSearchActive) {
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(searchResults) { plant ->
+                            PlantCard(plant = plant, navController = navController)
+                        }
+                    }
                 }
+            } else {
+                CategoryGrid(navController)
             }
+        }
+    }
+}
+
+@Composable
+private fun LearnHeader() {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Learn",
+            style = MaterialTheme.typography.displaySmall,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = "Explore the World of Plants",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//private fun PlantCard(plant: TreflePlant, navController: NavController, fromSearch: Boolean = true) {
+//    Card(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .height(200.dp),
+//        shape = RoundedCornerShape(16.dp),
+//        onClick = {
+//            navController.currentBackStackEntry?.savedStateHandle?.set("fromSearch", fromSearch)
+//            navController.navigate("plant_detail/${plant.id}")
+//        }
+//    ) {
+//        Box(
+//            modifier = Modifier.fillMaxSize()
+//        ) {
+//            // Simple background color if no image
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .background(MaterialTheme.colorScheme.surfaceVariant)
+//            )
+//
+//            // If there's an image
+//            if (plant.imageUrl.isNotEmpty()) {
+//                AsyncImage(
+//                    model = plant.imageUrl,
+//                    contentDescription = plant.commonName,
+//                    modifier = Modifier.fillMaxSize(),
+//                    contentScale = ContentScale.Crop
+//                )
+//            }
+//
+//            // Plant information
+//            Column(
+//                modifier = Modifier
+//                    .align(Alignment.BottomStart)
+//                    .padding(16.dp)
+//            ) {
+//                if (plant.commonName.isNotEmpty()) {
+//                    Text(
+//                        text = plant.commonName,
+//                        style = MaterialTheme.typography.titleLarge,
+//                        color = Color.White,
+//                        fontWeight = FontWeight.Bold
+//                    )
+//                }
+//                Text(
+//                    text = plant.scientificName,
+//                    style = MaterialTheme.typography.bodyMedium,
+//                    color = Color.White.copy(alpha = 0.7f),
+//                    fontStyle = FontStyle.Italic
+//                )
+//            }
+//        }
+//    }
+//}
+
+data class PlantCategory(
+    val name: String,
+    val icon: ImageVector,
+    val itemCount: Int
+)
+
+val categories = listOf(
+    PlantCategory("Trees", Icons.Filled.Forest, 40),
+    PlantCategory("Flowers", Icons.Filled.LocalFlorist, 40),
+    PlantCategory("Garden Plants", Icons.Filled.Grass, 40),
+    PlantCategory("Herbs", Icons.Filled.WbSunny, 40)
+)
+
+@Composable
+fun CategoryGrid(navController: NavController) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(categories) { category ->
+            CategoryCard(category, navController)
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PlantCard(plant: TreflePlant, navController: NavController) {
+fun CategoryCard(category: PlantCategory, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp),
+            .height(160.dp),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
+            defaultElevation = 4.dp,
+            pressedElevation = 8.dp
         ),
-        onClick = {
-            navController.navigate("plant_detail/${plant.id}")
+        onClick = { 
+            navController.navigate("category_results/${category.name.lowercase()}")
         }
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize()
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            LeafGreen1.copy(alpha = 0.1f),
+                            LeafGreen2.copy(alpha = 0.2f)
+                        )
+                    )
+                )
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
         ) {
-            // Plant Image
-            if (plant.imageUrl.isNotEmpty()) {
-                AsyncImage(
-                    model = plant.imageUrl,
-                    contentDescription = plant.commonName,
-                    modifier = Modifier
-                        .width(160.dp)
-                        .fillMaxHeight(),
-                    contentScale = ContentScale.Crop
-                )
-            }
-
-            // Plant Information
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(16.dp)
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = plant.commonName,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = plant.scientificName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                Icon(
+                    imageVector = category.icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Family: ${plant.family}",
-                    style = MaterialTheme.typography.bodySmall
+                    text = category.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
                 )
                 Text(
-                    text = "Genus: ${plant.genus}",
-                    style = MaterialTheme.typography.bodySmall
+                    text = "${category.itemCount} items",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
             }
         }

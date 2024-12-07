@@ -1,11 +1,17 @@
 package com.example.natura_lynx
 
+import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Forest
+import androidx.compose.material.icons.filled.Grass
+import androidx.compose.material.icons.filled.LocalFlorist
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,11 +23,27 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlantDetailScreen(plantId: Int, navController: NavController) {
-    val viewModel: PlantDetailViewModel = viewModel(factory = PlantDetailViewModel.provideFactory(plantId))
+fun PlantDetailScreen(
+    plantId: Int,
+    navController: NavController
+) {
+    val context = LocalContext.current
+    val viewModel: PlantDetailViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return PlantDetailViewModel(plantId, context) as T
+            }
+        }
+    )
+
     val plant = viewModel.plant.value
     val isLoading = viewModel.isLoading.value
 
@@ -30,7 +52,16 @@ fun PlantDetailScreen(plantId: Int, navController: NavController) {
             TopAppBar(
                 title = { Text(plant?.commonName ?: "") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
+                    IconButton(onClick = {
+                        val previousRoute = navController.previousBackStackEntry?.destination?.route
+                        if (previousRoute?.startsWith("category_results") == true) {
+                            navController.navigateUp()
+                        } else {
+                            navController.navigate("learn") {
+                                popUpTo("learn") { inclusive = true }
+                            }
+                        }
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                     }
                 }
@@ -94,7 +125,10 @@ fun PlantDetailScreen(plantId: Int, navController: NavController) {
                             fontWeight = FontWeight.Bold
                         )
                         plantData.additionalDetails?.forEach { (key, value) ->
-                            DetailItem(key, value)
+                            DetailItem(
+                                label = key,
+                                value = value.toString()
+                            )
                         }
                     }
                 }
