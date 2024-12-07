@@ -99,6 +99,13 @@ fun NaturaLynxApp() {
                 val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""
                 DetailScreen(categoryName, navController)
             }
+            composable(
+                route = "plant_detail/{plantId}",
+                arguments = listOf(navArgument("plantId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val plantId = backStackEntry.arguments?.getInt("plantId") ?: return@composable
+                PlantDetailScreen(plantId = plantId, navController = navController)
+            }
         }
     }
 }

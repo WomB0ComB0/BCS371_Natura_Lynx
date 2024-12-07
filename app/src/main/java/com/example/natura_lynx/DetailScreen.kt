@@ -317,4 +317,15 @@ private fun getCategoryItems(categoryName: String): List<PlantItem> {
         )
         else -> emptyList()
     }
-} 
+}
+
+private fun getImageForSubcategory(imageName: String): Int {
+    return when (imageName) {
+        "Oak" -> R.drawable.oak
+        "Maple" -> R.drawable.maple
+        "Pine" -> R.drawable.pine
+        "Rose" -> R.drawable.rose
+        "Sunflower" -> R.drawable.sunflower
+        else -> R.drawable.default_image
+    }
+}
