@@ -6,8 +6,14 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.ktx.initialize
 
 class NaturaLynxApplication : Application() {
+    companion object {
+        lateinit var instance: NaturaLynxApplication
+            private set
+    }
+
     override fun onCreate() {
         super.onCreate()
+        instance = this
         FirebaseApp.initializeApp(this)
     }
 } 

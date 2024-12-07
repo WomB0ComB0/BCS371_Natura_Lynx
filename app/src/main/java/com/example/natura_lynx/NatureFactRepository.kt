@@ -1,5 +1,6 @@
 package com.example.natura_lynx
 
+import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -10,7 +11,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 
-class NatureFactRepository {
+class NatureFactRepository(private val context: Context) {
     private val client = OkHttpClient()
     private val JSON = "application/json; charset=utf-8".toMediaType()
     private val tag = "NatureFactRepository"
@@ -24,8 +25,10 @@ class NatureFactRepository {
                 put("messages", JSONArray().apply {
                     put(JSONObject().apply {
                         put("role", "system")
-                        put("content", "You are a nature expert. Each time you are asked, provide a fact " +
-                            "about a completely different species. Do not mention the corpse flower " +
+                        put("content", "You are a nature expert. Provide direct, concise facts about different species. " +
+                            "Never start with phrases like 'Sure!' or 'Here's a fact:'. " +
+                            "Just state the fact directly. Each time you are asked, provide a fact about a " +
+                            "completely different species. Do not mention the corpse flower " +
                             "(Amorphophallus titanum) under any circumstances.")
                     })
                     put(JSONObject().apply {
@@ -67,8 +70,24 @@ class NatureFactRepository {
                 "Error: Unable to generate a nature fact. Status code: ${response.code}"
             }
         } catch (e: Exception) {
-            Log.e(tag, "Error generating fact", e)
-            "Error: ${e.message}"
+            Log.e(tag, "Error getting nature fact", e)
+            "Failed to get nature fact. Please try again."
+        }
+    }
+
+    suspend fun saveFactCount(count: Int) {
+        withContext(Dispatchers.IO) {
+            context.getSharedPreferences("NaturaLynx", Context.MODE_PRIVATE)
+                .edit()
+                .putInt("fact_count", count)
+                .apply()
+        }
+    }
+
+    suspend fun getFactCount(): Int {
+        return withContext(Dispatchers.IO) {
+            context.getSharedPreferences("NaturaLynx", Context.MODE_PRIVATE)
+                .getInt("fact_count", 0)
         }
     }
 } 

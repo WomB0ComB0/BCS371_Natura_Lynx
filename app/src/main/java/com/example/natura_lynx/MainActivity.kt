@@ -1,6 +1,5 @@
 package com.example.natura_lynx
 
-import ProfileScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
