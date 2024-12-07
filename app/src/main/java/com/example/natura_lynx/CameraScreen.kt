@@ -1,6 +1,7 @@
 package com.example.natura_lynx
 
 import android.Manifest
+import android.content.Context
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -13,9 +14,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.horizontalAlignment
-import androidx.compose.foundation.layout.verticalArrangement
-import androidx.compose.foundation.layout.Alignment
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -33,7 +31,15 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.shouldShowRationale
 import android.widget.Toast
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.viewinterop.AndroidView
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import java.io.File
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun CameraScreen(onPhotoTaken: (String) -> Unit, onBack: () -> Unit) {
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
