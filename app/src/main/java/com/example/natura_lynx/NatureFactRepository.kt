@@ -26,15 +26,15 @@ class NatureFactRepository(private val context: Context) {
                     put(JSONObject().apply {
                         put("role", "system")
                         put("content", "You are a nature expert. Provide direct, concise facts about different species. " +
-                            "Never start with phrases like 'Sure!' or 'Here's a fact:'. " +
+                            "It is crucial to never start with phrases like 'Sure!' or 'Here's a fact:'. " +
                             "Just state the fact directly. Each time you are asked, provide a fact about a " +
-                            "completely different species. Do not mention the corpse flower " +
-                            "(Amorphophallus titanum) under any circumstances.")
+                            "completely different species. Do not mention the corpse flower, venus fly trap, or other carnivorous plants like" +
+                            "Amorphophallus titanum under any circumstances.")
                     })
                     put(JSONObject().apply {
                         put("role", "user")
-                        put("content", "Tell me a random fact about any plant or fungi species " +
-                            "(except the corpse flower). Choose a completely random species " +
+                        put("content", "Tell me a random fact about any plant, flower, fungi species " +
+                            "(except the corpse flower or venus fly trap). Choose a completely random species " +
                             "that hasn't been mentioned before. Make it concise and interesting.")
                     })
                 })

@@ -2,30 +2,41 @@ package com.example.natura_lynx
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Forest
 import androidx.compose.material.icons.filled.Grass
+import androidx.compose.material.icons.filled.LocalFlorist
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.natura_lynx.ui.theme.LeafGreen1
 import com.example.natura_lynx.ui.theme.LeafGreen2
-import androidx.navigation.NavController
-import androidx.navigation.Navigation
 
 @Composable
-fun LearnScreen(navController: NavController) {
+fun LearnScreen(
+    navController: NavController,
+    viewModel: PlantSearchViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+) {
+    val searchQuery by viewModel.searchQuery
+    val searchResults by viewModel.searchResults
+    val isLoading by viewModel.isLoading
+    var isSearchActive by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -37,11 +48,55 @@ fun LearnScreen(navController: NavController) {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            LearnHeader()
+            // Only show header when not searching
+            if (!isSearchActive) {
+                LearnHeader()
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+
+            // Search Bar
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { query -> 
+                    viewModel.onSearchQueryChange(query)
+                    isSearchActive = true  // Set this to true immediately when focusing
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        if (focusState.isFocused && searchQuery.isNotEmpty()) {
+                            isSearchActive = true
+                            viewModel.onSearchQueryChange(searchQuery)  // Trigger search when focusing with existing query
+                        }
+                    },
+                placeholder = { Text("Search plants...") },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp)
+            )
+            
             Spacer(modifier = Modifier.height(24.dp))
-            SearchBar()
-            Spacer(modifier = Modifier.height(24.dp))
-            CategoryGrid(navController)
+
+            // Show either search results or categories
+            if (isSearchActive) {
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(searchResults) { plant ->
+                            PlantCard(plant = plant, navController = navController)
+                        }
+                    }
+                }
+            } else {
+                CategoryGrid(navController)
+            }
         }
     }
 }
@@ -66,35 +121,93 @@ private fun LearnHeader() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SearchBar() {
-    OutlinedTextField(
-        value = "",
-        onValueChange = { /* TODO: Implement search */ },
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text("Search plants and facts...") },
-        singleLine = true,
-        shape = RoundedCornerShape(12.dp)
-    )
-}
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//private fun PlantCard(plant: TreflePlant, navController: NavController, fromSearch: Boolean = true) {
+//    Card(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .height(200.dp),
+//        shape = RoundedCornerShape(16.dp),
+//        onClick = {
+//            navController.currentBackStackEntry?.savedStateHandle?.set("fromSearch", fromSearch)
+//            navController.navigate("plant_detail/${plant.id}")
+//        }
+//    ) {
+//        Box(
+//            modifier = Modifier.fillMaxSize()
+//        ) {
+//            // Simple background color if no image
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .background(MaterialTheme.colorScheme.surfaceVariant)
+//            )
+//
+//            // If there's an image
+//            if (plant.imageUrl.isNotEmpty()) {
+//                AsyncImage(
+//                    model = plant.imageUrl,
+//                    contentDescription = plant.commonName,
+//                    modifier = Modifier.fillMaxSize(),
+//                    contentScale = ContentScale.Crop
+//                )
+//            }
+//
+//            // Plant information
+//            Column(
+//                modifier = Modifier
+//                    .align(Alignment.BottomStart)
+//                    .padding(16.dp)
+//            ) {
+//                if (plant.commonName.isNotEmpty()) {
+//                    Text(
+//                        text = plant.commonName,
+//                        style = MaterialTheme.typography.titleLarge,
+//                        color = Color.White,
+//                        fontWeight = FontWeight.Bold
+//                    )
+//                }
+//                Text(
+//                    text = plant.scientificName,
+//                    style = MaterialTheme.typography.bodyMedium,
+//                    color = Color.White.copy(alpha = 0.7f),
+//                    fontStyle = FontStyle.Italic
+//                )
+//            }
+//        }
+//    }
+//}
+
+data class PlantCategory(
+    val name: String,
+    val icon: ImageVector,
+    val itemCount: Int
+)
+
+val categories = listOf(
+    PlantCategory("Trees", Icons.Filled.Forest, 40),
+    PlantCategory("Flowers", Icons.Filled.LocalFlorist, 40),
+    PlantCategory("Garden Plants", Icons.Filled.Grass, 40),
+    PlantCategory("Herbs", Icons.Filled.WbSunny, 40)
+)
 
 @Composable
-private fun CategoryGrid(navController: NavController) {
+fun CategoryGrid(navController: NavController) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(categories) { category ->
-            CategoryCard(category,navController)
+            CategoryCard(category, navController)
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CategoryCard(category: PlantCategory,navController: NavController) {
+fun CategoryCard(category: PlantCategory, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -104,7 +217,9 @@ private fun CategoryCard(category: PlantCategory,navController: NavController) {
             defaultElevation = 4.dp,
             pressedElevation = 8.dp
         ),
-        onClick = { navController.navigate("DetailsScreen/${category.name}") }
+        onClick = { 
+            navController.navigate("category_results/${category.name.lowercase()}")
+        }
     ) {
         Box(
             modifier = Modifier
@@ -147,33 +262,3 @@ private fun CategoryCard(category: PlantCategory,navController: NavController) {
     }
 }
 
-fun getImageForSubcategory(subcategory: String): Int {
-    return when (subcategory) {
-        "Oak" -> R.drawable.oak
-        "Pine" -> R.drawable.pine
-        "Maple" -> R.drawable.maple
-        "Rose" -> R.drawable.rose
-        "Tulip" -> R.drawable.tulip
-        "Sunflower" -> R.drawable.sunflower
-        "Lilac" -> R.drawable.lilac
-        "Hydrangea" -> R.drawable.hydrangea
-        "Mushroom" -> R.drawable.mushroom
-        "Yeast" -> R.drawable.yeast
-        "Peat Moss" -> R.drawable.peat_moss
-        "Sphagnum" -> R.drawable.sphagnum
-        else -> R.drawable.default_image
-    }
-}
-
-data class PlantCategory(
-    val name: String,
-    val icon: ImageVector,
-    val itemCount: Int
-)
-
-private val categories = listOf(
-    PlantCategory("Trees", Icons.Filled.Grass, 25),
-    PlantCategory("Flowers", Icons.Filled.Grass, 30),
-    PlantCategory("Garden Plants", Icons.Filled.Grass, 20),
-    PlantCategory("Herbs", Icons.Filled.Grass, 15)
-)
