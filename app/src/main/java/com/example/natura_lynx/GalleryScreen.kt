@@ -1,4 +1,5 @@
 
+import android.app.AlertDialog
 import android.content.Context
 import android.net.Uri
 import android.util.Log
@@ -20,49 +21,54 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.example.natura_lynx.PlantidRepo
 import kotlinx.coroutines.launch
-import java.io.IOException
 
 @Composable
 fun GalleryScreen(navController: NavController, context: Context) {
     var imageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
-    var plantIdentificationResult by remember { mutableStateOf<String?>(null) }  // Add this state to store the result
+    var plantIdentificationResult by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
-    // Image picker launcher
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
             scope.launch {
                 try {
-                    val bytes = context.contentResolver.openInputStream(uri)?.use {
-                        it.readBytes()
-                    } ?: throw IOException("Failed to read image")
+                    val inputStream = context.contentResolver.openInputStream(uri)
+                    if (inputStream == null) {
+                        Log.e("GalleryScreen", "Input stream is null for URI: $uri")
+                        Toast.makeText(context, "Failed to load image.", Toast.LENGTH_LONG).show()
+                        return@launch
+                    }
+
+                    val bytes = inputStream.use { it.readBytes() }
+                    Log.d("GalleryScreen", "Read ${bytes.size} bytes from the image.")
 
                     val plantRepo = PlantidRepo(context)
                     val result = plantRepo.identifyPlant(bytes)
-                    plantIdentificationResult = result  // Store the result here
-
+                    plantIdentificationResult = result
                 } catch (e: Exception) {
                     Log.e("GalleryScreen", "Error processing image", e)
                     Toast.makeText(context, "Failed to process image: ${e.message}", Toast.LENGTH_LONG).show()
                 } finally {
-                    isLoading = false // Set loading state to false after processing
+                    isLoading = false
                 }
             }
         }
     }
 
-    // Launch the image picker immediately
     LaunchedEffect(Unit) {
         launcher.launch("image/*")
     }
 
-    // If the result is not null, display a Toast with the API result
     if (plantIdentificationResult != null) {
-        Toast.makeText(context, "Plant Identified: $plantIdentificationResult", Toast.LENGTH_LONG).show()
-        plantIdentificationResult = null  // Reset the result after showing the toast
+        AlertDialog.Builder(context)
+            .setTitle("Plant Identified")
+            .setMessage(plantIdentificationResult)
+            .setPositiveButton("OK", null)
+            .show()
+        plantIdentificationResult = null
     }
 
     Box(

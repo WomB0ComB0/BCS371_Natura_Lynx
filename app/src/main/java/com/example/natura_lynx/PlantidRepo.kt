@@ -11,107 +11,62 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.json.JSONObject
 
-data class PlantIdentification(
-    val plantName: String,
-    val confidence: Int,
-    val commonNames: List<String>,
-    val taxonomy: Taxonomy,
-    val description: String,
-    val wikiUrl: String
-)
-
-
-data class Taxonomy(
-    val className: String,
-    val genus: String,
-    val order: String,
-    val family: String,
-    val phylum: String,
-    val kingdom: String
-)
-
 class PlantidRepo(private val context: Context) {
 
-    // OkHttpClient is the client used to make HTTP requests.
     private val client = OkHttpClient()
-
-    // Define the media type for JSON
     private val JSON = "application/json; charset=utf-8".toMediaType()
-
-    // Tag for logging purposes
     private val tag = "PlantIdRepository"
 
-    // Function to send the image for plant identification
     suspend fun identifyPlant(imageBytes: ByteArray): String = withContext(Dispatchers.IO) {
-
         try {
-            // Building the multipart request body
+            // Log the API key and URL
+            Log.d(tag, "API Key: ${Config.PLANTID_API_KEY}")
+            Log.d(tag, "API URL: ${Config.PLANT_API_URL}")
+
             val requestBody: RequestBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
-                .addFormDataPart(
-                    "images",
-                    "image.jpg",
-                    RequestBody.create("image/jpeg".toMediaType(), imageBytes)
-                )
+                .addFormDataPart("images", "plant_image.jpg", RequestBody.create("image/jpeg".toMediaType(), imageBytes))
                 .addFormDataPart("api_key", Config.PLANTID_API_KEY)
                 .build()
 
-            // Building the HTTP request
+            Log.d(tag, "Request body created with content type: ${requestBody.contentType()}")
+
             val request = Request.Builder()
-                .url("https://api.plant.id/v3")
+                .url(Config.PLANT_API_URL)
                 .post(requestBody)
                 .build()
 
-            // Execute the request asynchronously
             val response = client.newCall(request).execute()
+            val responseBody = response.body?.string()
 
-            // Check if the response is successful
-            if (response.isSuccessful) {
-                val responseBody = response.body?.string()
+            if (response.isSuccessful && responseBody != null) {
+                Log.d(tag, "API response: $responseBody")
 
-                // Logging for debugging
-                Log.d(tag, "Response code: ${response.code}")
-                Log.d(tag, "Response body: $responseBody")
-
-                if (responseBody != null) {
-                    val responseJson = JSONObject(responseBody)
-
-                    // Handle the case when the response contains suggestions
-                    if (responseJson.has("suggestions")) {
-                        val suggestions = responseJson.getJSONArray("suggestions")
-                        if (suggestions.length() > 0) {
-                            val suggestion = suggestions.getJSONObject(0)
-                            val plantName = suggestion.getString("plant_name")
-                            val confidence = suggestion.getInt("probability")  // Confidence level
-                            val description = suggestion.getString("description")
-
-                            // Log and return more detailed information
-                            Log.d(
-                                tag,
-                                "Plant Name: $plantName, Confidence: $confidence, Description: $description"
-                            )
-
-                            // Return a message with plant info
-                            return@withContext "Identified plant: $plantName (Confidence: $confidence%)"
-                        } else {
-                            return@withContext "No suggestions found for this plant."
+                val responseJson = JSONObject(responseBody)
+                val result = responseJson.optJSONObject("result")
+                if (result != null && result.has("classification")) {
+                    val classification = result.getJSONObject("classification")
+                    val suggestions = classification.getJSONArray("suggestions")
+                    if (suggestions.length() > 0) {
+                        val suggestionsList = StringBuilder("Classification Suggestions:\n")
+                        for (i in 0 until suggestions.length()) {
+                            val suggestion = suggestions.getJSONObject(i)
+                            val name = suggestion.getString("name")
+                            val probability = suggestion.getDouble("probability")
+                            suggestionsList.append("Suggestion ${i + 1}: $name with a probability of ${"%.4f".format(probability)}.\n")
                         }
+                        return@withContext suggestionsList.toString().trim()
                     } else {
-                        return@withContext "Error: No suggestions returned from API."
+                        return@withContext "No classification suggestions found for this plant."
                     }
                 } else {
-                    return@withContext "Error: Empty response from API."
+                    return@withContext "Error: No classification results found in the response."
                 }
             } else {
-                // Handle different HTTP status codes
-                return@withContext when (response.code) {
-                    401 -> "Error: Unauthorized request. Please check your API key."
-                    500 -> "Error: Server error. Please try again later."
-                    else -> "Error: Unable to identify the plant. Status code: ${response.code}"
-                }
+                Log.e(tag, "API error: ${response.code} - ${responseBody ?: "No response body"}")
+                return@withContext "Error: Unable to identify the plant. Status code: ${response.code}"
             }
         } catch (e: Exception) {
             Log.e(tag, "Error identifying plant", e)
             return@withContext "Failed to identify the plant. Please try again."
-        }
-    }}
+        }}}
