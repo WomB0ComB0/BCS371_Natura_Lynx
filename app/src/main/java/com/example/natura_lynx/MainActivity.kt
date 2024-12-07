@@ -36,9 +36,10 @@ class MainActivity : ComponentActivity() {
 fun NaturaLynxApp() {
     val navController = rememberNavController()
     val auth = remember { Firebase.auth }
-
-
-    val startDestination = if (auth.currentUser != null) "home" else "login"
+    
+    val startDestination by remember {
+        mutableStateOf(if (auth.currentUser != null) "home" else "login")
+    }
 
     Scaffold(
         bottomBar = {

@@ -21,8 +21,31 @@ fun RegisterScreen(navController: NavController) {
     var confirmPassword by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+    var confirmPasswordError by remember { mutableStateOf<String?>(null) }
 
     val auth = remember { Firebase.auth }
+
+    // Email validation function
+    fun validateEmail(email: String): String? {
+        return when {
+            email.isEmpty() -> "Email cannot be empty"
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> "Invalid email format"
+            else -> null
+        }
+    }
+
+    // Password validation function
+    fun validatePassword(password: String): String? {
+        return when {
+            password.isEmpty() -> "Password cannot be empty"
+            password.length < 8 -> "Password must be at least 8 characters"
+            !password.any { it.isDigit() } -> "Password must contain at least one number"
+            !password.any { it.isUpperCase() } -> "Password must contain at least one uppercase letter"
+            else -> null
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -40,35 +63,75 @@ fun RegisterScreen(navController: NavController) {
 
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = { 
+                email = it
+                emailError = validateEmail(it)
+            },
             label = { Text("Email") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            isError = emailError != null,
+            supportingText = {
+                emailError?.let {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = { 
+                password = it
+                passwordError = validatePassword(it)
+            },
             label = { Text("Password") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            isError = passwordError != null,
+            supportingText = {
+                passwordError?.let {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = confirmPassword,
-            onValueChange = { confirmPassword = it },
+            onValueChange = { 
+                confirmPassword = it
+                confirmPasswordError = when {
+                    it.isEmpty() -> "Please confirm your password"
+                    it != password -> "Passwords don't match"
+                    else -> null
+                }
+            },
             label = { Text("Confirm Password") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            isError = confirmPasswordError != null,
+            supportingText = {
+                confirmPasswordError?.let {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -85,31 +148,32 @@ fun RegisterScreen(navController: NavController) {
 
         Button(
             onClick = {
-                if (password != confirmPassword) {
-                    errorMessage = "Passwords don't match"
-                    return@Button
+                emailError = validateEmail(email)
+                passwordError = validatePassword(password)
+                confirmPasswordError = when {
+                    confirmPassword.isEmpty() -> "Please confirm your password"
+                    confirmPassword != password -> "Passwords don't match"
+                    else -> null
                 }
 
-                isLoading = true
-                errorMessage = null
-                auth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener { task ->
-                        isLoading = false
-                        if (task.isSuccessful) {
-                            navController.navigate("home") {
-                                popUpTo("register") { inclusive = true }
+                if (emailError == null && passwordError == null && confirmPasswordError == null) {
+                    isLoading = true
+                    errorMessage = null
+                    auth.createUserWithEmailAndPassword(email, password)
+                        .addOnCompleteListener { task ->
+                            isLoading = false
+                            if (task.isSuccessful) {
+                                navController.navigate("home") {
+                                    popUpTo("register") { inclusive = true }
+                                }
+                            } else {
+                                errorMessage = task.exception?.message ?: "Registration failed"
                             }
-                        } else {
-                            Log.e("RegisterScreen", "Registration failed", task.exception)
-                            errorMessage = task.exception?.message ?: "Registration failed"
                         }
-                    }
+                }
             },
             modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoading &&
-                    email.isNotBlank() &&
-                    password.isNotBlank() &&
-                    confirmPassword.isNotBlank()
+            enabled = !isLoading && email.isNotBlank() && password.isNotBlank() && confirmPassword.isNotBlank()
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
@@ -124,9 +188,9 @@ fun RegisterScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(16.dp))
 
         TextButton(
-            onClick = { navController.navigateUp() }
+            onClick = { navController.navigate("login") }
         ) {
-            Text("Already have an account? Login")
+            Text("Already have an account? Sign in")
         }
     }
 } 

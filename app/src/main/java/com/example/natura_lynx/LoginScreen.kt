@@ -20,8 +20,30 @@ fun LoginScreen(navController: NavController) {
     var password by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
 
     val auth = remember { Firebase.auth }
+
+    // Email validation function
+    fun validateEmail(email: String): String? {
+        return when {
+            email.isEmpty() -> "Email cannot be empty"
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> "Invalid email format"
+            else -> null
+        }
+    }
+
+    // Password validation function
+    fun validatePassword(password: String): String? {
+        return when {
+            password.isEmpty() -> "Password cannot be empty"
+            password.length < 8 -> "Password must be at least 8 characters"
+            !password.any { it.isDigit() } -> "Password must contain at least one number"
+            !password.any { it.isUpperCase() } -> "Password must contain at least one uppercase letter"
+            else -> null
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -39,23 +61,47 @@ fun LoginScreen(navController: NavController) {
 
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = { 
+                email = it
+                emailError = validateEmail(it)
+            },
             label = { Text("Email") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            isError = emailError != null,
+            supportingText = {
+                emailError?.let {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = { 
+                password = it
+                passwordError = validatePassword(it)
+            },
             label = { Text("Password") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            isError = passwordError != null,
+            supportingText = {
+                passwordError?.let {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -72,19 +118,24 @@ fun LoginScreen(navController: NavController) {
 
         Button(
             onClick = {
-                isLoading = true
-                errorMessage = null
-                auth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener { task ->
-                        isLoading = false
-                        if (task.isSuccessful) {
-                            navController.navigate("home") {
-                                popUpTo("login") { inclusive = true }
+                emailError = validateEmail(email)
+                passwordError = validatePassword(password)
+
+                if (emailError == null && passwordError == null) {
+                    isLoading = true
+                    errorMessage = null
+                    auth.signInWithEmailAndPassword(email, password)
+                        .addOnCompleteListener { task ->
+                            isLoading = false
+                            if (task.isSuccessful) {
+                                navController.navigate("home") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            } else {
+                                errorMessage = task.exception?.message ?: "Authentication failed"
                             }
-                        } else {
-                            errorMessage = task.exception?.message ?: "Authentication failed"
                         }
-                    }
+                }
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = !isLoading && email.isNotBlank() && password.isNotBlank()
