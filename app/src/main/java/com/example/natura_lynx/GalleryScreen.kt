@@ -1,46 +1,44 @@
 package com.example.natura_lynx
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.provider.MediaStore
-import androidx.activity.ComponentActivity
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import coil.compose.AsyncImage
-import android.content.ContentUris
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import android.content.ContentUris
 import coil.compose.AsyncImage
-
 
 @Composable
 fun GalleryScreen(navController: NavController) {
     val context = LocalContext.current
     val imageUris = remember { mutableStateListOf<Uri>() }
-    LaunchedEffect(Unit) {
+
+    // Use LaunchedEffect to load images asynchronously
+    LaunchedEffect(key1 = context) {
         val uriList = loadImagesFromMediaStore(context)
         imageUris.clear()
         imageUris.addAll(uriList)
     }
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
+        // More descriptive and stylized empty state
         if (imageUris.isEmpty()) {
             Text(
-                text = "No images in gallery",
+                text = "No images found in gallery",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -49,7 +47,10 @@ fun GalleryScreen(navController: NavController) {
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(imageUris) { uri ->
+                items(
+                    items = imageUris,
+                    key = { it.toString() } // Provide a unique key for better performance
+                ) { uri ->
                     AsyncImage(
                         model = uri,
                         contentDescription = "Gallery Image",
@@ -66,27 +67,37 @@ fun GalleryScreen(navController: NavController) {
 
 private fun loadImagesFromMediaStore(context: Context): List<Uri> {
     val imageUris = mutableListOf<Uri>()
-    val projection = arrayOf(MediaStore.Images.Media._ID)
-    val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
+    
+    // More robust image loading with error handling
+    try {
+        val projection = arrayOf(
+            MediaStore.Images.Media._ID,
+            MediaStore.Images.Media.DATE_TAKEN
+        )
+        val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
 
-    val query = context.contentResolver.query(
-        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-        projection,
-        null,
-        null,
-        sortOrder
-    )
-
-    query?.use { cursor ->
-        val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-        while (cursor.moveToNext()) {
-            val id = cursor.getLong(idColumn)
-            val contentUri = ContentUris.withAppendedId(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                id
-            )
-            imageUris.add(contentUri)
+        context.contentResolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            null,
+            null,
+            sortOrder
+        )?.use { cursor ->
+            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+            
+            while (cursor.moveToNext()) {
+                val id = cursor.getLong(idColumn)
+                val contentUri = ContentUris.withAppendedId(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    id
+                )
+                imageUris.add(contentUri)
+            }
         }
+    } catch (e: Exception) {
+        // Log the error or handle it appropriately
+        e.printStackTrace()
     }
+    
     return imageUris
 }
