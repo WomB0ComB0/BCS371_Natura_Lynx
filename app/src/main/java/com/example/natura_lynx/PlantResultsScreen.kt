@@ -1,6 +1,7 @@
 package com.example.natura_lynx
 
 import android.annotation.SuppressLint
+import android.util.Base64
 import android.util.Log
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,13 +31,24 @@ fun PlantResultsScreen(navController: NavController, result: String?) {
     LaunchedEffect(result) {
         if (!result.isNullOrEmpty()) {
             isLoading.value = true
-            // Assuming the result is the base64 image or byte array you want to send
-            val imageBytes = result.toByteArray() // Convert to byteArray or fetch as needed
             try {
+                // Assuming result is a base64 string, decode to byteArray
+                val imageBytes = Base64.decode(result, Base64.DEFAULT)  // Decode base64 string
+
+                Log.d("PlantResultsScreen", "Sending image to API...")
+
                 val plantSuggestionsText = plantRepo.identifyPlant(imageBytes)
+
+                // Log the raw response
+                Log.d("PlantResultsScreen", "API response: $plantSuggestionsText")
+
                 // Process the response and update the plantSuggestions list
-                val suggestions = parseSuggestions(plantSuggestionsText) // Parse suggestions here
+                val suggestions = parseSuggestions(plantSuggestionsText)
+                Log.d("PlantResultsScreen", "Parsed Suggestions: $suggestions")
+
+                // Add the parsed suggestions to the list
                 plantSuggestions.addAll(suggestions)
+
             } catch (e: Exception) {
                 Log.e("PlantResultsScreen", "Error identifying plant", e)
             }
@@ -55,6 +67,9 @@ fun PlantResultsScreen(navController: NavController, result: String?) {
             // Show loading indicator while fetching data
             CircularProgressIndicator()
         } else {
+            // Log the plantSuggestions list to confirm it's populated
+            Log.d("PlantResultsScreen", "Plant Suggestions List: $plantSuggestions")
+
             LazyColumn {
                 items(plantSuggestions) { plant ->
                     PlantResultCard(plant = plant, navController = navController)
@@ -67,6 +82,9 @@ fun PlantResultsScreen(navController: NavController, result: String?) {
 // Function to parse the plant suggestions string and return a list of Plant objects
 fun parseSuggestions(responseText: String): List<Plant> {
     val suggestions = mutableListOf<Plant>()
+    // Log the raw responseText to check if it is formatted correctly
+    Log.d("PlantResultsScreen", "Parsing response: $responseText")
+
     // Assuming the responseText is formatted as "Suggestion X: <name> with a probability of <probability>"
     val lines = responseText.split("\n")
     for (line in lines) {
@@ -79,5 +97,7 @@ fun parseSuggestions(responseText: String): List<Plant> {
             suggestions.add(Plant(id, commonName, commonName, "image_url_placeholder", probability))
         }
     }
+    // Log the final list of suggestions to ensure it's correctly populated
+    Log.d("PlantResultsScreen", "Final Suggestions List: $suggestions")
     return suggestions
 }
