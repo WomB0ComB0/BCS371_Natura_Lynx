@@ -146,10 +146,14 @@ class TrefleRepository {
             
             val cleanFamily = familyObj?.optString("name", "Unknown") ?: plant.optString("family", "Unknown")
             val cleanGenus = genusObj?.optString("name", "Unknown") ?: plant.optString("genus", "Unknown")
+            
+            // Get common name or use scientific name if none exists
+            val commonName = plant.optString("common_name")?.takeIf { it.isNotBlank() && it != "null" }
+                ?: plant.getString("scientific_name")
 
             TreflePlantDetail(
                 id = plant.getInt("id"),
-                commonName = plant.optString("common_name", "Unknown"),
+                commonName = commonName,
                 scientificName = plant.getString("scientific_name"),
                 imageUrl = plant.optJSONObject("image_url")?.optString("original") 
                     ?: plant.optString("image_url", ""),
@@ -158,11 +162,7 @@ class TrefleRepository {
                 additionalDetails = mapOf(
                     "Edible" to (if (plant.optBoolean("edible", false)) "Yes" else "No"),
                     "First Discovered" to (plant.optString("year", "Unknown")),
-                    "Average Height" to (plant.optString("average_height_cm", "Unknown") + " cm"),
-                    "Toxicity" to (if (plant.optBoolean("poisonous", false)) "Toxic" else "Non-toxic"),
-                    "Growth Rate" to (plant.optString("growth_rate", "Unknown")),
-                    "Light Requirements" to (plant.optString("light", "Unknown")),
-                    "Soil pH" to (plant.optString("soil_ph", "Unknown"))
+                    "Toxicity" to (if (plant.optBoolean("poisonous", false)) "Toxic" else "Non-toxic")
                 ).filterValues { it != "Unknown" && it.isNotEmpty() }
             )
         } catch (e: Exception) {
