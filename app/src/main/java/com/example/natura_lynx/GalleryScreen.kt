@@ -1,4 +1,3 @@
-
 import android.app.AlertDialog
 import android.content.Context
 import android.net.Uri
@@ -29,6 +28,15 @@ fun GalleryScreen(navController: NavController, context: Context) {
     var plantIdentificationResult by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
+    // Function to increment identification count
+    fun incrementIdentificationCount() {
+        val sharedPrefs = context.getSharedPreferences("NaturaLynx", Context.MODE_PRIVATE)
+        val currentCount = sharedPrefs.getInt("plants_identified", 0)
+        sharedPrefs.edit()
+            .putInt("plants_identified", currentCount + 1)
+            .apply()
+    }
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -48,6 +56,11 @@ fun GalleryScreen(navController: NavController, context: Context) {
                     val plantRepo = PlantidRepo(context)
                     val result = plantRepo.identifyPlant(bytes)
                     plantIdentificationResult = result
+                    
+                    // Increment counter when identification is successful
+                    if (result != null) {
+                        incrementIdentificationCount()
+                    }
                 } catch (e: Exception) {
                     Log.e("GalleryScreen", "Error processing image", e)
                     Toast.makeText(context, "Failed to process image: ${e.message}", Toast.LENGTH_LONG).show()
