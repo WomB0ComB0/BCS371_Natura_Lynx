@@ -141,6 +141,10 @@ fun NaturaLynxApp() {
                 val category = backStackEntry.arguments?.getString("category") ?: ""
                 CategoryResultsScreen(category = category, navController = navController)
             }
+            composable("plant_results/{result}") { backStackEntry ->
+                val result = backStackEntry.arguments?.getString("result")
+                PlantResultsScreen(navController,result = result)
+            }
         }
     }
 }

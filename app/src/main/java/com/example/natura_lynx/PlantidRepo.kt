@@ -70,3 +70,11 @@ class PlantidRepo(private val context: Context) {
             Log.e(tag, "Error identifying plant", e)
             return@withContext "Failed to identify the plant. Please try again."
         }}}
+
+data class Plant(
+    val id: String,
+    val commonName: String,
+    val scientificName: String,
+    val imageUrl: String,
+    val probability: Double
+)

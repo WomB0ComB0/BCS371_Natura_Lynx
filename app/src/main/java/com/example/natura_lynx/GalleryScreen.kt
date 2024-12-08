@@ -66,7 +66,10 @@ fun GalleryScreen(navController: NavController, context: Context) {
         AlertDialog.Builder(context)
             .setTitle("Plant Identified")
             .setMessage(plantIdentificationResult)
-            .setPositiveButton("OK", null)
+            .setPositiveButton("Go to Result") { _, _ ->
+                navController.navigate("plant_results/$plantIdentificationResult")
+            }
+            .setNegativeButton("OK", null)
             .show()
         plantIdentificationResult = null
     }
