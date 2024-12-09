@@ -62,6 +62,8 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation("androidx.test.espresso:espresso-core:3.6.1")
     implementation("com.google.firebase:firebase-common-ktx:21.0.0")
+    implementation("androidx.datastore:datastore-core-android:1.1.1")
+    implementation("androidx.datastore:datastore-preferences-core-jvm:1.1.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -128,4 +130,5 @@ dependencies {
 
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 }

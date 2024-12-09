@@ -52,7 +52,7 @@ fun PlantResultsScreen(navController: NavController, result: String?) {
             isLoading.value = true
             try {
                 Log.d("PlantResultsScreen", "1. Raw result received: $result")
-                
+
                 // First check if we can parse the result
                 if (result == "null") {
                     throw Exception("No identification result received")
@@ -71,7 +71,7 @@ fun PlantResultsScreen(navController: NavController, result: String?) {
                     .getJSONObject("result")
                     .getJSONObject("classification")
                     .getJSONArray("suggestions")
-                
+
                 Log.d("PlantResultsScreen", "3. Found ${suggestions.length()} suggestions")
 
                 // Get the top suggestion
@@ -79,7 +79,7 @@ fun PlantResultsScreen(navController: NavController, result: String?) {
                     val topSuggestion = suggestions.getJSONObject(0)
                     val scientificName = topSuggestion.getString("name")
                     val probability = topSuggestion.getDouble("probability")
-                    
+
                     Log.d("PlantResultsScreen", "4. Top suggestion: $scientificName with probability $probability")
 
                     // Get taxonomy from OpenAI
@@ -88,7 +88,7 @@ fun PlantResultsScreen(navController: NavController, result: String?) {
 
                     if (taxonomy != null) {
                         val (family, genus) = taxonomy
-                        
+
                         // Search Trefle
                         val treflePlants = trefleRepo.searchPlants(scientificName)
                         val treflePlant = treflePlants.firstOrNull()
@@ -177,4 +177,3 @@ fun PlantResultsScreen(navController: NavController, result: String?) {
         }
     }
 }
-

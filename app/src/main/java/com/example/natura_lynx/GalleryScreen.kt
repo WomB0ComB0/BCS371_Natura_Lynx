@@ -57,7 +57,7 @@ fun GalleryScreen(navController: NavController, context: Context) {
 
                     val plantRepo = PlantidRepo(context)
                     val result = plantRepo.identifyPlant(bytes)
-                    
+
                     if (result != null) {
                         Log.d("GalleryScreen", "Received identification result: $result")
                         plantIdentificationResult = result
@@ -92,7 +92,7 @@ fun GalleryScreen(navController: NavController, context: Context) {
             val suggestions = json.getJSONObject("result")
                 .getJSONObject("classification")
                 .getJSONArray("suggestions")
-            
+
             buildString {
                 appendLine("Identified Plants:")
                 for (i in 0 until minOf(suggestions.length(), 3)) {
