@@ -44,6 +44,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.io.File
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -57,7 +58,9 @@ fun CameraScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
     val plantRepo = remember { PlantidRepo(context) }
-    
+
+    val recentScansManager = remember { RecentScansManager(context) }
+
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
     
     when {
@@ -146,6 +149,32 @@ fun CameraScreen(
                                                 scope.launch {
                                                     try {
                                                         val imageBytes = photoFile.readBytes()
+                                                        val result = plantRepo.identifyPlant(imageBytes)
+
+                                                        // Create IdentifiedPlant from the result
+                                                        val json = JSONObject(result)
+                                                        val suggestions = json.getJSONObject("result")
+                                                            .getJSONObject("classification")
+                                                            .getJSONArray("suggestions")
+                                                        val firstSuggestion = suggestions.getJSONObject(0)
+
+                                                        // Create and save the identified plant
+                                                        val identifiedPlant = IdentifiedPlant(
+                                                            id = firstSuggestion.getString("id"),
+                                                            commonName = firstSuggestion.getString("name"),
+                                                            scientificName = firstSuggestion.getString("name"),
+                                                            imageUrl = json.getJSONObject("input")
+                                                                .getJSONArray("images")
+                                                                .getString(0),
+                                                            probability = firstSuggestion.getDouble("probability"),
+                                                            family = "",
+                                                            genus = "",
+                                                            species = "",
+                                                            additionalDetails = mapOf()
+                                                        )
+
+                                                        // Save to recent scans
+                                                        recentScansManager.saveRecentScan(identifiedPlant)
                                                         onPhotoTaken(imageBytes)
                                                     } catch (e: Exception) {
                                                         Log.e("CameraScreen", "Failed to process image", e)
