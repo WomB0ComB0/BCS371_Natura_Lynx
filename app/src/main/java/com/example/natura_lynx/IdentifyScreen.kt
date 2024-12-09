@@ -353,11 +353,6 @@ data class PlantIdentifications(
     val confidence: Int
 )
 
-private val sampleIdentifications = listOf(
-    PlantIdentifications("Red Rose", "Today, 2:30 PM", 95),
-    PlantIdentifications("Oak Tree", "Yesterday", 88),
-    PlantIdentifications("Sunflower", "2 days ago", 92)
-)
 
 @Composable
 private fun AnimatedTreeBackground() {
