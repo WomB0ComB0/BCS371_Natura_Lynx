@@ -1,10 +1,30 @@
 package com.example.natura_lynx
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -15,20 +35,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import org.json.JSONObject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlantResultCard(plant: IdentifiedPlant, navController: NavController) {
     var showDetails by remember { mutableStateOf(false) }
-    
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -92,7 +105,7 @@ fun PlantResultCard(plant: IdentifiedPlant, navController: NavController) {
                                 color = Color.White
                             )
                         }
-                        
+
                         Box {
                             // Shadow layer
                             Text(
@@ -179,7 +192,7 @@ fun PlantResultCard(plant: IdentifiedPlant, navController: NavController) {
                             val suggestion = suggestions.getJSONObject(i)
                             val probability = (suggestion.getDouble("probability") * 100).toInt()
                             val name = suggestion.getString("name")
-                            
+
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -197,7 +210,7 @@ fun PlantResultCard(plant: IdentifiedPlant, navController: NavController) {
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
-                            
+
                             if (i < 2) {  // Don't add divider after last item
                                 Divider(
                                     modifier = Modifier.padding(vertical = 4.dp),
@@ -212,7 +225,7 @@ fun PlantResultCard(plant: IdentifiedPlant, navController: NavController) {
                             color = MaterialTheme.colorScheme.error
                         )
                     }
-                    
+
                     if (plant.family.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
@@ -220,7 +233,7 @@ fun PlantResultCard(plant: IdentifiedPlant, navController: NavController) {
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
-                    
+
                     plant.additionalDetails.forEach { (key, value) ->
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(

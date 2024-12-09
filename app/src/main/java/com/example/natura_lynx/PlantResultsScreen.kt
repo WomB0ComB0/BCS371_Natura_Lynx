@@ -1,10 +1,8 @@
 package com.example.natura_lynx
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.net.Uri
-import android.util.Base64
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,10 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import kotlinx.serialization.json.Json
-import kotlinx.coroutines.launch
-import android.widget.Toast
-import androidx.compose.runtime.rememberCoroutineScope
 import org.json.JSONObject
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -52,7 +45,7 @@ fun PlantResultsScreen(navController: NavController, result: String?) {
             isLoading.value = true
             try {
                 Log.d("PlantResultsScreen", "1. Raw result received: $result")
-                
+
                 // First check if we can parse the result
                 if (result == "null") {
                     throw Exception("No identification result received")
@@ -71,7 +64,7 @@ fun PlantResultsScreen(navController: NavController, result: String?) {
                     .getJSONObject("result")
                     .getJSONObject("classification")
                     .getJSONArray("suggestions")
-                
+
                 Log.d("PlantResultsScreen", "3. Found ${suggestions.length()} suggestions")
 
                 // Get the top suggestion
@@ -79,7 +72,7 @@ fun PlantResultsScreen(navController: NavController, result: String?) {
                     val topSuggestion = suggestions.getJSONObject(0)
                     val scientificName = topSuggestion.getString("name")
                     val probability = topSuggestion.getDouble("probability")
-                    
+
                     Log.d("PlantResultsScreen", "4. Top suggestion: $scientificName with probability $probability")
 
                     // Get taxonomy from OpenAI
@@ -88,7 +81,7 @@ fun PlantResultsScreen(navController: NavController, result: String?) {
 
                     if (taxonomy != null) {
                         val (family, genus) = taxonomy
-                        
+
                         // Search Trefle
                         val treflePlants = trefleRepo.searchPlants(scientificName)
                         val treflePlant = treflePlants.firstOrNull()

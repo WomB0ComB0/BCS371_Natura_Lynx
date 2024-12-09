@@ -43,16 +43,15 @@ class CategoryResultsViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                // Check disk cache first
                 loadCachedPlants(category)?.let { cachedPlants ->
                     _plants.value = cachedPlants
                     _isLoading.value = false
                     return@launch
                 }
 
-                // If not in cache, load from API
+
                 val results = repository.searchPlantsByCategory(category)
-                savePlantsToCache(category, results)  // Save to disk cache
+                savePlantsToCache(category, results)
                 _plants.value = results
             } catch (e: Exception) {
                 Log.e("CategoryResults", "Error loading plants", e)

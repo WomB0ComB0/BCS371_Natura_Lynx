@@ -1,7 +1,15 @@
 package com.example.natura_lynx
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -13,8 +21,19 @@ import androidx.compose.material.icons.filled.Forest
 import androidx.compose.material.icons.filled.Grass
 import androidx.compose.material.icons.filled.LocalFlorist
 import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
@@ -121,63 +140,7 @@ private fun LearnHeader() {
     }
 }
 
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//private fun PlantCard(plant: TreflePlant, navController: NavController, fromSearch: Boolean = true) {
-//    Card(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .height(200.dp),
-//        shape = RoundedCornerShape(16.dp),
-//        onClick = {
-//            navController.currentBackStackEntry?.savedStateHandle?.set("fromSearch", fromSearch)
-//            navController.navigate("plant_detail/${plant.id}")
-//        }
-//    ) {
-//        Box(
-//            modifier = Modifier.fillMaxSize()
-//        ) {
-//            // Simple background color if no image
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .background(MaterialTheme.colorScheme.surfaceVariant)
-//            )
-//
-//            // If there's an image
-//            if (plant.imageUrl.isNotEmpty()) {
-//                AsyncImage(
-//                    model = plant.imageUrl,
-//                    contentDescription = plant.commonName,
-//                    modifier = Modifier.fillMaxSize(),
-//                    contentScale = ContentScale.Crop
-//                )
-//            }
-//
-//            // Plant information
-//            Column(
-//                modifier = Modifier
-//                    .align(Alignment.BottomStart)
-//                    .padding(16.dp)
-//            ) {
-//                if (plant.commonName.isNotEmpty()) {
-//                    Text(
-//                        text = plant.commonName,
-//                        style = MaterialTheme.typography.titleLarge,
-//                        color = Color.White,
-//                        fontWeight = FontWeight.Bold
-//                    )
-//                }
-//                Text(
-//                    text = plant.scientificName,
-//                    style = MaterialTheme.typography.bodyMedium,
-//                    color = Color.White.copy(alpha = 0.7f),
-//                    fontStyle = FontStyle.Italic
-//                )
-//            }
-//        }
-//    }
-//}
+
 
 data class PlantCategory(
     val name: String,
