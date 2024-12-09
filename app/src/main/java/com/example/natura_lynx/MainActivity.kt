@@ -1,8 +1,11 @@
 package com.example.natura_lynx
 
 import GalleryScreen
+import android.app.AlertDialog
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
@@ -31,6 +34,11 @@ import androidx.navigation.navArgument
 import com.example.natura_lynx.ui.theme.Natura_lynxTheme
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,6 +56,7 @@ fun NaturaLynxApp() {
     val navController = rememberNavController()
     val auth = remember { Firebase.auth }
     val context= LocalContext.current
+    val scope = CoroutineScope(Dispatchers.IO)
     val startDestination by remember {
         mutableStateOf(if (auth.currentUser != null) "home" else "login")
     }
@@ -101,13 +110,56 @@ fun NaturaLynxApp() {
             composable("identify") { IdentifyScreen(navController) }
             composable("learn") { LearnScreen(navController) }
             composable("profile") { ProfileScreen(navController) }
-            composable("camera") { 
+            composable("camera") {
                 CameraScreen(
-                    onPhotoTaken = { bytes ->
-                        navController.previousBackStackEntry
-                            ?.savedStateHandle
-                            ?.set("selected_image", bytes)
-                        navController.popBackStack()
+                    onPhotoTaken = { imageBytes ->
+                        scope.launch {
+                            try {
+                                val plantRepo = PlantidRepo(context)
+                                val result = plantRepo.identifyPlant(imageBytes)
+                                val formattedMessage = try {
+                                    val json = JSONObject(result)
+                                    val suggestions = json.getJSONObject("result")
+                                        .getJSONObject("classification")
+                                        .getJSONArray("suggestions")
+
+                                    buildString {
+                                        appendLine("Identified Plants:")
+                                        for (i in 0 until minOf(suggestions.length(), 3)) {
+                                            val plant = suggestions.getJSONObject(i)
+                                            val probability = (plant.getDouble("probability") * 100).toInt()
+                                            appendLine("${i + 1}. ${plant.getString("name")} ($probability%)")
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    "Error formatting plant details"
+                                }
+
+                                withContext(Dispatchers.Main) {
+                                    AlertDialog.Builder(context)
+                                        .setTitle("Plant Identified")
+                                        .setMessage(formattedMessage)
+                                        .setPositiveButton("GO TO RESULT") { _, _ ->
+                                            Log.d("CameraScreen", "Navigating with identification: $result")
+                                            navController.navigate("plant_results/${Uri.encode(result.toString())}")
+                                        }
+                                        .setNegativeButton("OK") { _, _ ->
+                                            navController.popBackStack()
+                                        }
+                                        .show()
+                                }
+                            } catch (e: Exception) {
+                                Log.e("MainActivity", "Error processing image", e)
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(
+                                        context,
+                                        "Error processing image: ${e.message}",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                    navController.navigateUp()
+                                }
+                            }
+                        }
                     },
                     onBack = { navController.navigateUp() }
                 )
