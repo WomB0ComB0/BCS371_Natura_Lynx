@@ -75,7 +75,7 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Main Action Buttons
+
             ActionButton(
                 icon = Icons.Filled.AddCircle,
                 text = "Identify Plants",
@@ -191,10 +191,14 @@ private fun StatItem(count: String, label: String) {
 private fun SwayingLeaves() {
     val infiniteTransition = rememberInfiniteTransition(label = "leaves")
 
-    // Natural leaf colors
-    val leafGreen1 = Color(0xFF4CAF50)  // Medium green
-    val leafGreen2 = Color(0xFF81C784)  // Light green
-    val leafGreen3 = Color(0xFF2E7D32)  // Dark green
+
+    val leafGreen1 = Color(0xFF4CAF50)
+    val leafGreen2 = Color(0xFF81C784)
+    val leafGreen3 = Color(0xFF2E7D32)
+
+
+    val windColor1 = Color(0xFF90CAF9)
+    val windColor2 = Color(0xFF64B5F6)
 
     val leavesAngle by infiniteTransition.animateFloat(
         initialValue = -2f,
@@ -216,7 +220,6 @@ private fun SwayingLeaves() {
         label = "alpha"
     )
 
-    // Wind effect animation
     val windOffset by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
@@ -233,7 +236,6 @@ private fun SwayingLeaves() {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val centerX = size.width * 0.4f
 
-            // Draw leaf layers
             for (i in 0..3) {
                 val layerWidth = size.width * (0.85f - i * 0.1f)
                 val layerHeight = size.height * (0.7f - i * 0.08f)
@@ -245,13 +247,11 @@ private fun SwayingLeaves() {
                     drawPath(
                         path = Path().apply {
                             moveTo(centerX, size.height - layerHeight)
-                            // Right curve
                             cubicTo(
                                 centerX + layerWidth * 0.3f, size.height - layerHeight * 0.8f,
                                 centerX + layerWidth * 0.5f, size.height - layerHeight * 0.6f,
                                 centerX + layerWidth * 0.5f, size.height - layerHeight * 0.3f
                             )
-                            // Left curve
                             cubicTo(
                                 centerX + layerWidth * 0.4f, size.height - layerHeight * 0.5f,
                                 centerX - layerWidth * 0.3f, size.height - layerHeight * 0.8f,
@@ -268,7 +268,6 @@ private fun SwayingLeaves() {
                 }
             }
 
-            // Enhanced wind particles
             for (i in 0..25) {
                 val progress = (windOffset + i / 25f) % 1f
                 val entryProgress = 1f - (progress * 2f).coerceIn(0f, 1f)
@@ -279,27 +278,37 @@ private fun SwayingLeaves() {
                 val y = baseY + (sin(progress * 8f) * 30f)
 
                 val particleSize = 6f * entryProgress
-                val particleAlpha = 0.7f * entryProgress * (1f - fadeProgress * fadeProgress)
+                val particleAlpha = 0.8f * entryProgress * (1f - fadeProgress * fadeProgress)
 
-                // Main particle
                 drawCircle(
-                    color = Color.White.copy(alpha = particleAlpha),
+                    color = windColor1.copy(alpha = particleAlpha * 0.3f),
+                    radius = particleSize * 2.5f,
+                    center = Offset(x, y)
+                )
+
+                drawCircle(
+                    color = windColor2.copy(alpha = particleAlpha),
                     radius = particleSize,
                     center = Offset(x, y)
                 )
 
-                // Particle trail
                 for (t in 1..3) {
                     val trailX = x - (t * 15f * entryProgress)
+
                     drawCircle(
-                        color = Color.White.copy(alpha = particleAlpha * (1f - t * 0.3f)),
+                        color = windColor1.copy(alpha = particleAlpha * (1f - t * 0.3f) * 0.3f),
+                        radius = particleSize * (1.5f - t * 0.3f),
+                        center = Offset(trailX, y)
+                    )
+
+                    drawCircle(
+                        color = windColor2.copy(alpha = particleAlpha * (1f - t * 0.3f)),
                         radius = particleSize * (1f - t * 0.3f),
                         center = Offset(trailX, y)
                     )
                 }
             }
 
-            // Wind streaks
             for (i in 0..5) {
                 val progress = (windOffset + i / 6f) % 1f
                 val entryProgress = 1f - (progress * 1.5f).coerceIn(0f, 1f)
@@ -315,7 +324,24 @@ private fun SwayingLeaves() {
                             size.height * 0.4f
                         )
                     },
-                    color = Color.White.copy(alpha = 0.3f * entryProgress),
+                    color = windColor1.copy(alpha = 0.4f * entryProgress),
+                    style = Stroke(
+                        width = 6f * entryProgress,
+                        cap = StrokeCap.Round
+                    )
+                )
+
+                drawPath(
+                    path = Path().apply {
+                        moveTo(startX, size.height * 0.4f)
+                        quadraticBezierTo(
+                            startX + 150f,
+                            (size.height * (0.4f + sin(progress * PI) * 0.15f)).toFloat(),
+                            startX + 300f,
+                            size.height * 0.4f
+                        )
+                    },
+                    color = windColor2.copy(alpha = 0.5f * entryProgress),
                     style = Stroke(
                         width = 3f * entryProgress,
                         cap = StrokeCap.Round
@@ -323,7 +349,6 @@ private fun SwayingLeaves() {
                 )
             }
 
-            // Floating leaf particles
             for (i in 0..5) {
                 rotate(
                     degrees = leavesAngle * (1f + i * 0.3f),
