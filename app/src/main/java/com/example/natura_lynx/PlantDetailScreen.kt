@@ -46,16 +46,17 @@ fun PlantDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(plant?.commonName ?: "") },
+                title = { Text(plant?.commonName ?: "Plant Details") },
                 navigationIcon = {
                     IconButton(onClick = {
-                        val previousRoute = navController.previousBackStackEntry?.destination?.route
-                        if (previousRoute?.startsWith("category_results") == true) {
-                            navController.navigateUp()
-                        } else {
-                            navController.navigate("learn") {
-                                popUpTo("learn") { inclusive = true }
+                        val fromScreen = navController.previousBackStackEntry
+                            ?.savedStateHandle?.get<String>("from_screen")
+                        if (fromScreen == "identify") {
+                            navController.navigate("identify") {
+                                popUpTo("identify") { inclusive = true }
                             }
+                        } else {
+                            navController.navigateUp()
                         }
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")

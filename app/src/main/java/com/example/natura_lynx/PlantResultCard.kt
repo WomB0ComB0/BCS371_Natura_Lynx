@@ -50,7 +50,22 @@ fun PlantResultCard(plant: IdentifiedPlant, navController: NavController) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
+                .height(200.dp),
+            onClick = {
+                // Save navigation source
+                navController.currentBackStackEntry?.savedStateHandle?.set("from_screen", "identify")
+                // Convert and navigate
+                val treflePlant = TreflePlant(
+                    id = plant.id.toIntOrNull() ?: 0,
+                    commonName = plant.commonName,
+                    scientificName = plant.scientificName,
+                    imageUrl = plant.imageUrl,
+                    family = plant.family,
+                    genus = plant.genus,
+                    additionalDetails = plant.additionalDetails
+                )
+                navController.navigate("plant_detail/${treflePlant.id}")
+            }
         ) {
             Box(
                 modifier = Modifier.fillMaxSize()

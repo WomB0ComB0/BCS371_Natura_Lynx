@@ -170,4 +170,3 @@ fun PlantResultsScreen(navController: NavController, result: String?) {
         }
     }
 }
-
