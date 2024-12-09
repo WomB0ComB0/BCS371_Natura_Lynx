@@ -27,7 +27,7 @@ class TrefleRepository {
         "sunflower" to Pair("Asteraceae", "Helianthus")
     )
 
-    private suspend fun getTaxonomyFromOpenAI(query: String): Pair<String, String>? = withContext(Dispatchers.IO) {
+    suspend fun getTaxonomyFromOpenAI(query: String): Pair<String, String>? = withContext(Dispatchers.IO) {
         try {
             val prompt = """
                 Return only the family name and genus (in that order) for the plant "$query" in this exact format:
@@ -88,7 +88,7 @@ class TrefleRepository {
                 val (family, genus) = taxonomy
                 "$baseUrl/plants?token=${Config.TREFLE_API_KEY}&filter[family_name]=$family&filter[genus]=$genus"
             } else {
-                // Fallback to Rosaceae if OpenAI fails
+                // Use GPT if cant find result
                 "$baseUrl/plants?token=${Config.TREFLE_API_KEY}&filter[family_name]=Rosaceae"
             }
             

@@ -1,5 +1,6 @@
 package com.example.natura_lynx
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -37,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -59,6 +61,9 @@ import com.example.natura_lynx.ui.theme.LeafGreen1
 import com.example.natura_lynx.ui.theme.LeafGreen2
 import com.example.natura_lynx.ui.theme.TreeGreen
 import kotlinx.coroutines.launch
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
 
 @Composable
 fun IdentifyScreen(navController: NavController) {
@@ -132,7 +137,7 @@ fun IdentifyScreen(navController: NavController) {
                 )
             }
 
-            RecentIdentifications()
+            RecentIdentifications(navController)
         }
     }
 }
@@ -255,24 +260,36 @@ private fun CaptureButton(
 }
 
 @Composable
-private fun RecentIdentifications() {
+private fun RecentIdentifications(navController: NavController) {
+    val context = LocalContext.current
+    val recentScans = remember { mutableStateListOf<IdentifiedPlant>() }
+    
+    LaunchedEffect(Unit) {
+        try {
+            val prefs = context.getSharedPreferences("recent_scans", Context.MODE_PRIVATE)
+            val scansJson = prefs.getString("scans", "[]") ?: "[]"
+            val scans = Json.decodeFromString<List<IdentifiedPlant>>(scansJson)
+            recentScans.addAll(scans)
+        } catch (e: Exception) {
+            Log.e("IdentifyScreen", "Error loading recent scans", e)
+        }
+    }
+
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
         Text(
             text = "Recent Discoveries",
             style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(vertical = 8.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(sampleIdentifications) { identification ->
-                IdentificationItem(identification)
+            items(recentScans) { scan ->
+                PlantResultCard(plant = scan, navController = navController)
             }
         }
     }

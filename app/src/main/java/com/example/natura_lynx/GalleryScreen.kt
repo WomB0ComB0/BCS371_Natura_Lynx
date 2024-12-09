@@ -20,12 +20,14 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.example.natura_lynx.PlantidRepo
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 @Composable
 fun GalleryScreen(navController: NavController, context: Context) {
     var imageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var plantIdentificationResult by remember { mutableStateOf<String?>(null) }
+    var showDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     // Function to increment identification count
@@ -55,11 +57,15 @@ fun GalleryScreen(navController: NavController, context: Context) {
 
                     val plantRepo = PlantidRepo(context)
                     val result = plantRepo.identifyPlant(bytes)
-                    plantIdentificationResult = result
                     
-                    // Increment counter when identification is successful
                     if (result != null) {
+                        Log.d("GalleryScreen", "Received identification result: $result")
+                        plantIdentificationResult = result
+                        showDialog = true
                         incrementIdentificationCount()
+                    } else {
+                        Log.e("GalleryScreen", "Identification result was null")
+                        Toast.makeText(context, "Failed to identify plant", Toast.LENGTH_LONG).show()
                     }
                 } catch (e: Exception) {
                     Log.e("GalleryScreen", "Error processing image", e)
@@ -68,6 +74,10 @@ fun GalleryScreen(navController: NavController, context: Context) {
                     isLoading = false
                 }
             }
+        } else {
+            // User cancelled image selection
+            isLoading = false
+            navController.popBackStack()
         }
     }
 
@@ -75,16 +85,42 @@ fun GalleryScreen(navController: NavController, context: Context) {
         launcher.launch("image/*")
     }
 
-    if (plantIdentificationResult != null) {
+    if (showDialog && plantIdentificationResult != null) {
+        val result = plantIdentificationResult // Local capture
+        val formattedMessage = try {
+            val json = JSONObject(result)
+            val suggestions = json.getJSONObject("result")
+                .getJSONObject("classification")
+                .getJSONArray("suggestions")
+            
+            buildString {
+                appendLine("Identified Plants:")
+                for (i in 0 until minOf(suggestions.length(), 3)) {
+                    val plant = suggestions.getJSONObject(i)
+                    val probability = (plant.getDouble("probability") * 100).toInt()
+                    appendLine("${i + 1}. ${plant.getString("name")} ($probability%)")
+                }
+            }
+        } catch (e: Exception) {
+            "Error formatting plant details"
+        }
+
         AlertDialog.Builder(context)
             .setTitle("Plant Identified")
-            .setMessage(plantIdentificationResult)
-            .setPositiveButton("Go to Result") { _, _ ->
-                navController.navigate("plant_results/$plantIdentificationResult")
+            .setMessage(formattedMessage)
+            .setPositiveButton("GO TO RESULT") { _, _ ->
+                Log.d("GalleryScreen", "Navigating with identification: $result")
+                navController.navigate("plant_results/${Uri.encode(result)}")
+                showDialog = false
             }
-            .setNegativeButton("OK", null)
+            .setNegativeButton("OK") { _, _ ->
+                showDialog = false
+                navController.popBackStack()
+            }
+            .setOnDismissListener {
+                showDialog = false
+            }
             .show()
-        plantIdentificationResult = null
     }
 
     Box(
