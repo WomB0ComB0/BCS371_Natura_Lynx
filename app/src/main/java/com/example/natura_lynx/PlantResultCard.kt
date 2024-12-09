@@ -77,7 +77,7 @@ fun PlantResultCard(plant: IdentifiedPlant, navController: NavController) {
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                 )
 
-                // Plant image
+
                 if (plant.imageUrl.isNotEmpty()) {
                     AsyncImage(
                         model = plant.imageUrl,
