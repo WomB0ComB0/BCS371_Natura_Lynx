@@ -70,7 +70,6 @@ fun PlantResultCard(plant: IdentifiedPlant, navController: NavController) {
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
-                // Background color if no image
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
