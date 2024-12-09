@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.natura_lynx.ui.theme.Natura_lynxTheme
@@ -60,10 +61,20 @@ fun NaturaLynxApp() {
     val startDestination by remember {
         mutableStateOf(if (auth.currentUser != null) "home" else "login")
     }
+    val routesWithoutBottomBar = listOf(
+        "login",
+        "register",
+    )
+
+    val shouldShowBottomBar = navController
+        .currentBackStackEntryAsState()
+        .value
+        ?.destination
+        ?.route !in routesWithoutBottomBar
 
     Scaffold(
         bottomBar = {
-            if (auth.currentUser != null) {
+            if (auth.currentUser != null && shouldShowBottomBar) {
                 BottomNavigation {
                     BottomNavigationItem(
                         icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
