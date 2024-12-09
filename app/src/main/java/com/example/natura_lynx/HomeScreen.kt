@@ -1,20 +1,47 @@
 package com.example.natura_lynx
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+
 
 @Composable
 fun HomeScreen(navController: NavController) {
@@ -41,9 +68,9 @@ fun HomeScreen(navController: NavController) {
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
             )
-            
+
             Spacer(modifier = Modifier.height(32.dp))
-            
+
             // Main Action Buttons
             ActionButton(
                 icon = Icons.Filled.AddCircle,
@@ -51,20 +78,29 @@ fun HomeScreen(navController: NavController) {
                 description = "Take a photo to identify plants",
                 onClick = { navController.navigate("identify") }
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             ActionButton(
                 icon = Icons.Filled.AccountBox,
                 text = "Learn About Nature",
                 description = "Explore and learn about plants",
                 onClick = { navController.navigate("learn") }
             )
-            
+
             Spacer(modifier = Modifier.height(32.dp))
-            
+
             // Quick Stats
             QuickStats()
+
+            // Animated Background
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                SwayingLeaves()
+            }
         }
     }
 }
@@ -144,5 +180,101 @@ private fun StatItem(count: String, label: String) {
             color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center
         )
+    }
+}
+
+@Composable
+private fun SwayingLeaves() {
+    val infiniteTransition = rememberInfiniteTransition(label = "leaves")
+
+    // Define natural green colors
+    val leafGreen1 = Color(0xFF4CAF50)  // Medium green
+    val leafGreen2 = Color(0xFF81C784)  // Light green
+    val leafGreen3 = Color(0xFF2E7D32)  // Dark green
+
+    val leavesAngle by infiniteTransition.animateFloat(
+        initialValue = -2f,
+        targetValue = 2f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "angle"
+    )
+
+    val leavesAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 0.5f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha"
+    )
+
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val centerX = size.width / 2
+
+            // Draw larger leaf layers
+            for (i in 0..3) {
+                val layerWidth = size.width * (0.7f - i * 0.1f)  // Increased from 0.25f to 0.7f
+                val layerHeight = size.height * (0.5f - i * 0.08f)  // Increased from 0.25f to 0.5f
+
+                rotate(
+                    degrees = leavesAngle * (1f + i * 0.5f),
+                    pivot = Offset(centerX, size.height - layerHeight * 0.5f)  // Adjusted pivot point
+                ) {
+                    // Draw larger leaf shape
+                    drawPath(
+                        path = Path().apply {
+                            moveTo(centerX, size.height - layerHeight)
+                            // Right curve (larger)
+                            cubicTo(
+                                centerX + layerWidth * 0.3f, size.height - layerHeight * 0.8f,
+                                centerX + layerWidth * 0.5f, size.height - layerHeight * 0.6f,
+                                centerX + layerWidth * 0.5f, size.height - layerHeight * 0.3f
+                            )
+                            // Left curve (larger)
+                            cubicTo(
+                                centerX + layerWidth * 0.4f, size.height - layerHeight * 0.5f,
+                                centerX - layerWidth * 0.3f, size.height - layerHeight * 0.8f,
+                                centerX, size.height - layerHeight
+                            )
+                            close()
+                        },
+                        color = when (i % 3) {
+                            0 -> leafGreen1
+                            1 -> leafGreen2
+                            else -> leafGreen3
+                        }.copy(alpha = leavesAlpha * (1f - i * 0.15f))
+                    )
+                }
+            }
+
+            // Add floating particles (larger)
+            for (i in 0..5) {
+                rotate(
+                    degrees = leavesAngle * (1f + i * 0.3f),
+                    pivot = Offset(centerX, size.height - size.height * 0.4f)
+                ) {
+                    // Larger particle leaf shape
+                    drawPath(
+                        path = Path().apply {
+                            val particleSize = 15f  // Increased from 8f
+                            moveTo(centerX + (i - 2.5f) * 40f, size.height - size.height * 0.4f)
+                            cubicTo(
+                                centerX + (i - 2.5f) * 40f + particleSize, size.height - size.height * 0.4f - particleSize,
+                                centerX + (i - 2.5f) * 40f + particleSize, size.height - size.height * 0.4f + particleSize,
+                                centerX + (i - 2.5f) * 40f, size.height - size.height * 0.4f
+                            )
+                        },
+                        color = leafGreen2.copy(alpha = leavesAlpha * 0.4f)
+                    )
+                }
+            }
+        }
     }
 }
