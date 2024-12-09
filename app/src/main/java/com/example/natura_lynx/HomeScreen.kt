@@ -1,6 +1,7 @@
 package com.example.natura_lynx
 
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -35,12 +36,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import kotlin.math.PI
+import kotlin.math.sin
 
 
 @Composable
@@ -187,10 +191,10 @@ private fun StatItem(count: String, label: String) {
 private fun SwayingLeaves() {
     val infiniteTransition = rememberInfiniteTransition(label = "leaves")
 
-    // Define natural green colors
-    val leafGreen1 = Color(0xFF4CAF50)  // Medium green
-    val leafGreen2 = Color(0xFF81C784)  // Light green
-    val leafGreen3 = Color(0xFF2E7D32)  // Dark green
+    // Natural leaf colors
+    val leafGreen1 = Color(0xFF4CAF50)
+    val leafGreen2 = Color(0xFF81C784)
+    val leafGreen3 = Color(0xFF2E7D32)
 
     val leavesAngle by infiniteTransition.animateFloat(
         initialValue = -2f,
@@ -203,8 +207,8 @@ private fun SwayingLeaves() {
     )
 
     val leavesAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 0.5f,
+        initialValue = 0.4f,
+        targetValue = 0.6f,
         animationSpec = infiniteRepeatable(
             animation = tween(1500, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
@@ -212,32 +216,39 @@ private fun SwayingLeaves() {
         label = "alpha"
     )
 
+    val windOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "wind"
+    )
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            val centerX = size.width / 2
+            val centerX = size.width * 0.4f
 
-            // Draw larger leaf layers
             for (i in 0..3) {
-                val layerWidth = size.width * (0.7f - i * 0.1f)  // Increased from 0.25f to 0.7f
-                val layerHeight = size.height * (0.5f - i * 0.08f)  // Increased from 0.25f to 0.5f
+                val layerWidth = size.width * (0.85f - i * 0.1f)
+                val layerHeight = size.height * (0.7f - i * 0.08f)
 
                 rotate(
                     degrees = leavesAngle * (1f + i * 0.5f),
-                    pivot = Offset(centerX, size.height - layerHeight * 0.5f)  // Adjusted pivot point
+                    pivot = Offset(centerX, size.height - layerHeight * 0.5f)
                 ) {
-                    // Draw larger leaf shape
                     drawPath(
                         path = Path().apply {
                             moveTo(centerX, size.height - layerHeight)
-                            // Right curve (larger)
                             cubicTo(
                                 centerX + layerWidth * 0.3f, size.height - layerHeight * 0.8f,
                                 centerX + layerWidth * 0.5f, size.height - layerHeight * 0.6f,
                                 centerX + layerWidth * 0.5f, size.height - layerHeight * 0.3f
                             )
-                            // Left curve (larger)
+                            // Left curve
                             cubicTo(
                                 centerX + layerWidth * 0.4f, size.height - layerHeight * 0.5f,
                                 centerX - layerWidth * 0.3f, size.height - layerHeight * 0.8f,
@@ -253,17 +264,43 @@ private fun SwayingLeaves() {
                     )
                 }
             }
+            for (i in 0..15) {
+                val progress = (windOffset + i / 15f) % 1f
+                val x = size.width * (0.2f + progress * 0.8f)  // Moves from left to right
+                val y = size.height * (0.3f + (sin(progress * 6f) * 0.1f))
+                val particleAlpha = 0.3f * (1f - progress)  // Fade out as they move
 
-            // Add floating particles (larger)
+                drawCircle(
+                    color = Color.White.copy(alpha = particleAlpha),
+                    radius = 3f,
+                    center = Offset(x, y)
+                )
+            }
+            for (i in 0..3) {
+                val progress = (windOffset + i / 4f) % 1f
+                val startX = size.width * (0.1f + progress * 0.7f)
+
+                drawPath(
+                    path = Path().apply {
+                        moveTo(startX, size.height * 0.4f)
+                        quadraticBezierTo(
+                            startX + 100f,
+                            (size.height * (0.4f + sin(progress * PI) * 0.1f)).toFloat(),
+                            startX + 200f, size.height * 0.4f
+                        )
+                    },
+                    color = Color.White.copy(alpha = 0.1f * (1f - progress)),
+                    style = Stroke(width = 2f)
+                )
+            }
             for (i in 0..5) {
                 rotate(
                     degrees = leavesAngle * (1f + i * 0.3f),
                     pivot = Offset(centerX, size.height - size.height * 0.4f)
                 ) {
-                    // Larger particle leaf shape
                     drawPath(
                         path = Path().apply {
-                            val particleSize = 15f  // Increased from 8f
+                            val particleSize = 12f
                             moveTo(centerX + (i - 2.5f) * 40f, size.height - size.height * 0.4f)
                             cubicTo(
                                 centerX + (i - 2.5f) * 40f + particleSize, size.height - size.height * 0.4f - particleSize,
