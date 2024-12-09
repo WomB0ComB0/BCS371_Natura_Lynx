@@ -64,6 +64,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
+import org.json.JSONObject
+import android.util.Base64
 
 @Composable
 fun IdentifyScreen(navController: NavController) {
@@ -89,6 +91,62 @@ fun IdentifyScreen(navController: NavController) {
                 try {
                     val plantRepo = PlantidRepo(context)
                     val result = plantRepo.identifyPlant(imageBytes)
+                    
+                    // Parse the result JSON
+                    val jsonResult = JSONObject(result)
+                    val suggestions = jsonResult
+                        .getJSONObject("result")
+                        .getJSONObject("classification")
+                        .getJSONArray("suggestions")
+
+                    if (suggestions.length() > 0) {
+                        val topSuggestion = suggestions.getJSONObject(0)
+                        val scientificName = topSuggestion.getString("name")
+                        val probability = topSuggestion.getDouble("probability")
+
+                        // Get taxonomy from OpenAI
+                        val trefleRepo = TrefleRepository()
+                        val taxonomy = trefleRepo.getTaxonomyFromOpenAI(scientificName)
+                        
+                        if (taxonomy != null) {
+                            val (familyNullable, genusNullable) = taxonomy
+                            val treflePlants = trefleRepo.searchPlants(scientificName)
+                            val treflePlant = treflePlants.firstOrNull()
+
+                            if (treflePlant != null) {
+                                // Save the scan to recent discoveries
+                                val scansManager = RecentScansManager(context)
+                                // Convert image bytes to Base64 string
+                                val base64Image = Base64.encodeToString(
+                                    imageBytes, 
+                                    Base64.DEFAULT
+                                )
+                                val imageUrl = "data:image/jpeg;base64,$base64Image"
+                                
+                                // Handle nullable values
+                                val family = familyNullable ?: "Unknown Family"
+                                val genus = genusNullable ?: "Unknown Genus"
+                                
+                                val identifiedPlant = IdentifiedPlant(
+                                    id = treflePlant.id.toString(),
+                                    commonName = treflePlant.commonName,
+                                    scientificName = scientificName,
+                                    imageUrl = imageUrl,
+                                    probability = probability,
+                                    family = family,
+                                    genus = genus,
+                                    species = scientificName.split(" ").getOrNull(1) ?: "",
+                                    rawIdentification = result.toString(),
+                                    additionalDetails = treflePlant.additionalDetails ?: mapOf(
+                                        "Family" to family,
+                                        "Genus" to genus
+                                    )
+                                )
+                                scansManager.saveRecentScan(identifiedPlant)
+                            }
+                        }
+                    }
+                    
                     navController.currentBackStackEntry?.savedStateHandle?.set("plant_details", result)
                     navController.navigate("plant_details")
                 } catch (e: Exception) {
@@ -263,33 +321,52 @@ private fun CaptureButton(
 private fun RecentIdentifications(navController: NavController) {
     val context = LocalContext.current
     val recentScans = remember { mutableStateListOf<IdentifiedPlant>() }
+    val scope = rememberCoroutineScope()
     
+    // Load recent scans whenever this composable is recomposed
     LaunchedEffect(Unit) {
-        try {
-            val prefs = context.getSharedPreferences("recent_scans", Context.MODE_PRIVATE)
-            val scansJson = prefs.getString("scans", "[]") ?: "[]"
-            val scans = Json.decodeFromString<List<IdentifiedPlant>>(scansJson)
-            recentScans.addAll(scans)
-        } catch (e: Exception) {
-            Log.e("IdentifyScreen", "Error loading recent scans", e)
+        scope.launch {
+            try {
+                val scansManager = RecentScansManager(context)
+                val scans = scansManager.getRecentScans()
+                recentScans.clear()
+                recentScans.addAll(scans)
+            } catch (e: Exception) {
+                Log.e("IdentifyScreen", "Error loading recent scans", e)
+            }
         }
     }
 
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
     ) {
         Text(
             text = "Recent Discoveries",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(vertical = 16.dp)
         )
 
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(recentScans) { scan ->
-                PlantResultCard(plant = scan, navController = navController)
+        if (recentScans.isEmpty()) {
+            Text(
+                text = "No recent plant identifications",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
+                items(recentScans) { scan ->
+                    PlantResultCard(
+                        plant = scan,
+                        navController = navController
+                    )
+                }
             }
         }
     }
