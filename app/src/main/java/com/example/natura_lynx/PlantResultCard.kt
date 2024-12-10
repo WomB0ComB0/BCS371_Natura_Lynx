@@ -86,7 +86,6 @@ fun PlantResultCard(plant: IdentifiedPlant, navController: NavController) {
                     )
                 }
 
-                // Gradient overlay and text
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()

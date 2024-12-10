@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -30,7 +29,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -76,7 +74,6 @@ fun ProfileScreen(navController: NavController) {
             )
         }
 
-        // Stats Cards
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -128,7 +125,6 @@ fun ProfileScreen(navController: NavController) {
 
                 Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
 
-                // Nature Facts
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -149,41 +145,13 @@ fun ProfileScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Settings button removed for now
-        // Button(
-        //     onClick = { /* TODO: Implement settings */ },
-        //     modifier = Modifier
-        //         .fillMaxWidth()
-        //         .height(56.dp),
-        //     shape = RoundedCornerShape(28.dp),
-        //     colors = ButtonDefaults.buttonColors(
-        //         containerColor = MaterialTheme.colorScheme.primary
-        //     )
-        // ) {
-        //     Row(
-        //         horizontalArrangement = Arrangement.Center,
-        //         verticalAlignment = Alignment.CenterVertically
-        //     ) {
-        //         Icon(
-        //             imageVector = Icons.Default.Settings,
-        //             contentDescription = "Settings",
-        //             modifier = Modifier.size(24.dp)
-        //         )
-        //         Spacer(modifier = Modifier.width(8.dp))
-        //         Text(
-        //             text = "Settings",
-        //             style = MaterialTheme.typography.titleMedium
-        //         )
-        //     }
-        // }
-        
-        // Spacer(modifier = Modifier.height(16.dp))
         
         Button(
             onClick = {
+                handleLogout(context)
                 auth.signOut()
                 navController.navigate("login") {
-                    popUpTo(0) { inclusive = true }
+                    popUpTo("home") { inclusive = true }
                 }
             },
             modifier = Modifier

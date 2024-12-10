@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 
@@ -50,12 +49,3 @@ class PlantDetailViewModel(
     }
 }
 
-//data class TreflePlantDetail(
-//    val id: Int,
-//    val commonName: String,
-//    val scientificName: String,
-//    val imageUrl: String,
-//    val family: String,
-//    val genus: String,
-//    val additionalDetails: Map<String, String>? = null
-//)

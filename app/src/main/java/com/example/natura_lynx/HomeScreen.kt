@@ -100,10 +100,8 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Quick Stats
             QuickStats()
 
-            // Animated Background
             Box(
                 modifier = Modifier
                     .weight(1f)

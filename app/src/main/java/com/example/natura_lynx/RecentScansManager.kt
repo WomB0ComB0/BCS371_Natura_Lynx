@@ -12,7 +12,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
-// Define the DataStore at the file level
 private val Context.dataStore by preferencesDataStore("recent_scans")
 
 class RecentScansManager(private val context: Context) {

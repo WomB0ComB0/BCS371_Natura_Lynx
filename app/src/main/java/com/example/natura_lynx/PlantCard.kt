@@ -45,7 +45,6 @@ fun PlantCard(plant: TreflePlant, navController: NavController, fromSearch: Bool
                 contentScale = ContentScale.Crop
             )
             
-            // Add semi-transparent overlay at the bottom
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -62,7 +61,6 @@ fun PlantCard(plant: TreflePlant, navController: NavController, fromSearch: Bool
             ) {
                 Column {
                     Box {
-                        // Shadow layer
                         Text(
                             text = plant.commonName,
                             style = MaterialTheme.typography.titleLarge,
@@ -70,7 +68,6 @@ fun PlantCard(plant: TreflePlant, navController: NavController, fromSearch: Bool
                             color = Color.Black.copy(alpha = 0.5f),
                             modifier = Modifier.offset(2.dp, 2.dp)
                         )
-                        // Main text layer
                         Text(
                             text = plant.commonName,
                             style = MaterialTheme.typography.titleLarge,
@@ -80,7 +77,6 @@ fun PlantCard(plant: TreflePlant, navController: NavController, fromSearch: Bool
                     }
                     
                     Box {
-                        // Shadow layer
                         Text(
                             text = plant.scientificName,
                             style = MaterialTheme.typography.bodyMedium,
@@ -88,7 +84,6 @@ fun PlantCard(plant: TreflePlant, navController: NavController, fromSearch: Bool
                             color = Color.Black.copy(alpha = 0.5f),
                             modifier = Modifier.offset(2.dp, 2.dp)
                         )
-                        // Main text layer
                         Text(
                             text = plant.scientificName,
                             style = MaterialTheme.typography.bodyMedium,

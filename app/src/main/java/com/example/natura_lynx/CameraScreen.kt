@@ -151,7 +151,6 @@ fun CameraScreen(
                                                         val imageBytes = photoFile.readBytes()
                                                         val result = plantRepo.identifyPlant(imageBytes)
 
-                                                        // Create IdentifiedPlant from the result
                                                         val json = JSONObject(result)
                                                         val suggestions = json.getJSONObject("result")
                                                             .getJSONObject("classification")
@@ -173,7 +172,6 @@ fun CameraScreen(
                                                             additionalDetails = mapOf()
                                                         )
 
-                                                        // Save to recent scans
                                                         recentScansManager.saveRecentScan(identifiedPlant)
                                                         onPhotoTaken(imageBytes)
                                                     } catch (e: Exception) {

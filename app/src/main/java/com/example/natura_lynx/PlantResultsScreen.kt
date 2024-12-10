@@ -46,16 +46,13 @@ fun PlantResultsScreen(navController: NavController, result: String?) {
             try {
                 Log.d("PlantResultsScreen", "1. Raw result received: $result")
 
-                // First check if we can parse the result
                 if (result == "null") {
                     throw Exception("No identification result received")
                 }
 
-                // Parse the JSON response
                 val jsonResult = JSONObject(result)
                 Log.d("PlantResultsScreen", "2. Parsed JSON result")
 
-                // Check if we have a valid result object
                 if (!jsonResult.has("result")) {
                     throw Exception("Invalid identification response format")
                 }
@@ -67,7 +64,6 @@ fun PlantResultsScreen(navController: NavController, result: String?) {
 
                 Log.d("PlantResultsScreen", "3. Found ${suggestions.length()} suggestions")
 
-                // Get the top suggestion
                 if (suggestions.length() > 0) {
                     val topSuggestion = suggestions.getJSONObject(0)
                     val scientificName = topSuggestion.getString("name")
@@ -75,7 +71,6 @@ fun PlantResultsScreen(navController: NavController, result: String?) {
 
                     Log.d("PlantResultsScreen", "4. Top suggestion: $scientificName with probability $probability")
 
-                    // Get taxonomy from OpenAI
                     val taxonomy = trefleRepo.getTaxonomyFromOpenAI(scientificName)
                     Log.d("PlantResultsScreen", "5. Taxonomy result: $taxonomy")
 

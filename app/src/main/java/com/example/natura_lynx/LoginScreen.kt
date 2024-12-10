@@ -1,16 +1,33 @@
 package com.example.natura_lynx
 
-import androidx.compose.foundation.layout.*
+import android.content.Context
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
@@ -22,6 +39,7 @@ fun LoginScreen(navController: NavController) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
+    val context= LocalContext.current
 
     val auth = remember { Firebase.auth }
 
@@ -34,7 +52,6 @@ fun LoginScreen(navController: NavController) {
         }
     }
 
-    // Password validation function
     fun validatePassword(password: String): String? {
         return when {
             password.isEmpty() -> "Password cannot be empty"
@@ -44,6 +61,8 @@ fun LoginScreen(navController: NavController) {
             else -> null
         }
     }
+
+
 
     Column(
         modifier = Modifier
@@ -128,6 +147,7 @@ fun LoginScreen(navController: NavController) {
                         .addOnCompleteListener { task ->
                             isLoading = false
                             if (task.isSuccessful) {
+                                handleLogin(context, email)
                                 navController.navigate("home") {
                                     popUpTo("login") { inclusive = true }
                                 }
@@ -158,4 +178,54 @@ fun LoginScreen(navController: NavController) {
             Text("Don't have an account? Sign up")
         }
     }
+}
+
+fun handleLogout(context: Context) {
+    val sharedPrefs = context.getSharedPreferences("NaturaLynx", Context.MODE_PRIVATE)
+    val currentUser = sharedPrefs.getString("current_user", "")
+    println("DEBUG: Logging out user: $currentUser")
+    
+    sharedPrefs.edit()
+        .remove("current_user")
+        .apply()
+}
+
+fun clearUserStats(context: Context, email: String) {
+    val sharedPrefs = context.getSharedPreferences("NaturaLynx", Context.MODE_PRIVATE)
+    println("DEBUG: Clearing stats for user: $email")
+    
+    sharedPrefs.edit()
+        .putInt("fact_count_$email", 0)
+        .putInt("plants_identified_$email", 0)
+        .apply()
+        
+    val facts = sharedPrefs.getInt("fact_count_$email", -1)
+    val plants = sharedPrefs.getInt("plants_identified_$email", -1)
+    println("DEBUG: After clearing - Facts: $facts, Plants: $plants")
+}
+
+fun handleLogin(context: Context, email: String, isNewRegistration: Boolean = false) {
+    val sharedPrefs = context.getSharedPreferences("NaturaLynx", Context.MODE_PRIVATE)
+    
+    println("DEBUG: Old user was: ${sharedPrefs.getString("current_user", "")}")
+    println("DEBUG: New user is: $email")
+    println("DEBUG: Is new registration: $isNewRegistration")
+    
+    if (isNewRegistration) {
+        sharedPrefs.edit().clear().apply()
+        
+        sharedPrefs.edit()
+            .putString("current_user", email)
+            .putInt("fact_count_$email", 0)
+            .putInt("plants_identified_$email", 0)
+            .apply()
+    }
+}
+
+fun printCurrentStats(context: Context) {
+    val sharedPrefs = context.getSharedPreferences("NaturaLynx", Context.MODE_PRIVATE)
+    val currentUser = sharedPrefs.getString("current_user", "")
+    val facts = sharedPrefs.getInt("fact_count_$currentUser", 0)
+    val plants = sharedPrefs.getInt("plants_identified_$currentUser", 0)
+    println("DEBUG: Current stats for $currentUser - Facts: $facts, Plants: $plants")
 }
