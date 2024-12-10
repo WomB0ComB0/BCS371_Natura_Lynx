@@ -1,6 +1,6 @@
 package com.example.natura_lynx
 
-import android.content.Context
+import android.util.Base64
 import android.util.Log
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -61,11 +61,7 @@ import com.example.natura_lynx.ui.theme.LeafGreen1
 import com.example.natura_lynx.ui.theme.LeafGreen2
 import com.example.natura_lynx.ui.theme.TreeGreen
 import kotlinx.coroutines.launch
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
 import org.json.JSONObject
-import android.util.Base64
 
 @Composable
 fun IdentifyScreen(navController: NavController) {
@@ -123,7 +119,7 @@ fun IdentifyScreen(navController: NavController) {
                                 )
                                 val imageUrl = "data:image/jpeg;base64,$base64Image"
                                 
-                                // Handle nullable values
+
                                 val family = familyNullable ?: "Unknown Family"
                                 val genus = genusNullable ?: "Unknown Genus"
                                 
@@ -323,7 +319,6 @@ private fun RecentIdentifications(navController: NavController) {
     val recentScans = remember { mutableStateListOf<IdentifiedPlant>() }
     val scope = rememberCoroutineScope()
     
-    // Load recent scans whenever this composable is recomposed
     LaunchedEffect(Unit) {
         scope.launch {
             try {
