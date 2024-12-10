@@ -1,5 +1,6 @@
 package com.example.natura_lynx
 
+import android.content.Context
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -29,7 +30,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -39,6 +43,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -49,6 +54,7 @@ import kotlin.math.sin
 
 @Composable
 fun HomeScreen(navController: NavController) {
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -158,12 +164,21 @@ private fun ActionButton(
 
 @Composable
 private fun QuickStats() {
+    val context = LocalContext.current
+    val factCount = remember { mutableStateOf(0) }
+    val plantsIdentified = remember { mutableStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        val sharedPrefs = context.getSharedPreferences("NaturaLynx", Context.MODE_PRIVATE)
+        factCount.value = sharedPrefs.getInt("fact_count", 0)
+        plantsIdentified.value = sharedPrefs.getInt("plants_identified", 0)
+    }
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        StatItem(count = "42", label = "Plants\nIdentified")
-        StatItem(count = "15", label = "Nature Facts\nLearned")
+        StatItem(count = "${plantsIdentified.value}", label = "Plants\nIdentified")
+        StatItem(count = "${factCount.value}", label = "Nature Facts\nLearned")
     }
 }
 
